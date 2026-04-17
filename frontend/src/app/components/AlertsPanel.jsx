@@ -67,7 +67,7 @@ export default function AlertsPanel() {
                                 <div className="flex-1 space-y-3">
                                     <div className="flex justify-between items-start">
                                         <p className={`text-[9px] font-black tracking-[0.2em] uppercase ${alert.severity === 'HIGH' ? 'text-red-400' :
-                                                alert.severity === 'MEDIUM' ? 'text-amber-400' : 'text-leagle-accent'
+                                            alert.severity === 'MEDIUM' ? 'text-amber-400' : 'text-leagle-accent'
                                             }`}>
                                             {alert.severity} Severity
                                         </p>

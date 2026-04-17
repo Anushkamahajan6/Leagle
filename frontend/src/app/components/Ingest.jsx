@@ -198,8 +198,8 @@ export default function Ingest() {
                         <p className="text-leagle-accent text-sm font-bold uppercase tracking-widest">Audit Result</p>
                       </div>
                       <div className={`px-6 py-3 rounded-2xl text-lg font-black border-2 shadow-lg ${analysisReport.comprehensive_synthesis.overall_compliance_status === "COMPLIANT" ? "bg-green-500/10 border-green-500 text-green-400" :
-                          analysisReport.comprehensive_synthesis.overall_compliance_status === "PARTIALLY_COMPLIANT" ? "bg-yellow-500/10 border-yellow-500 text-yellow-400" :
-                            "bg-red-500/10 border-red-500 text-red-500"
+                        analysisReport.comprehensive_synthesis.overall_compliance_status === "PARTIALLY_COMPLIANT" ? "bg-yellow-500/10 border-yellow-500 text-yellow-400" :
+                          "bg-red-500/10 border-red-500 text-red-500"
                         }`}>
                         {analysisReport.comprehensive_synthesis.overall_compliance_status}
                       </div>
@@ -266,8 +266,8 @@ export default function Ingest() {
                     <div key={idx} className="glass-card p-6 bg-white/2 group hover:bg-white/5 transition-all">
                       <div className="flex items-center justify-between mb-4">
                         <span className={`px-2 py-1 rounded text-[9px] font-black tracking-widest uppercase ${finding.risk_impact === "HIGH" ? "bg-red-500/20 text-red-400" :
-                            finding.risk_impact === "MEDIUM" ? "bg-orange-500/20 text-orange-400" :
-                              "bg-green-500/20 text-green-400"
+                          finding.risk_impact === "MEDIUM" ? "bg-orange-500/20 text-orange-400" :
+                            "bg-green-500/20 text-green-400"
                           }`}>
                           {finding.risk_impact} Severity
                         </span>

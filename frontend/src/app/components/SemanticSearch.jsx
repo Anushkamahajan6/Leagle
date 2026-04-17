@@ -83,8 +83,8 @@ export default function SemanticSearch() {
                                     <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10">
                                         <span className="text-[10px] font-black uppercase text-gray-500 tracking-tighter">Risk:</span>
                                         <span className={`text-[10px] font-black uppercase ${result.local_ml_risk === 'High' ? 'text-red-500' :
-                                                result.local_ml_risk === 'Medium' ? 'text-orange-400' :
-                                                    'text-green-400'
+                                            result.local_ml_risk === 'Medium' ? 'text-orange-400' :
+                                                'text-green-400'
                                             }`}>
                                             {result.local_ml_risk}
                                         </span>

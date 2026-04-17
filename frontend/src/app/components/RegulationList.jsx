@@ -72,8 +72,8 @@ export default function RegulationList() {
                         <div className="space-y-6">
                             <div className="flex items-center gap-3">
                                 <span className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-[0.2em] shadow-sm ${reg.jurisdiction === 'UK'
-                                        ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
-                                        : 'bg-leagle-accent/10 text-leagle-accent border border-leagle-accent/20'
+                                    ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
+                                    : 'bg-leagle-accent/10 text-leagle-accent border border-leagle-accent/20'
                                     }`}>
                                     {reg.jurisdiction || 'Global'}
                                 </span>
