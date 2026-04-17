@@ -26,6 +26,7 @@ Open http://localhost:3000 to access the UI.
 
 **Getting Started:**
 - **[SETUP_GUIDE.md](SETUP_GUIDE.md)** ← **Start here!** Complete local setup with Qdrant, Redis, backend & frontend
+- **[FRONTEND_SETUP.md](FRONTEND_SETUP.md)** — Frontend components, pages, and features
 - **[BUILD.md](BUILD.md)** — Complete step-by-step implementation guide (Phases 0-6)
 - **[PROGRESS.md](PROGRESS.md)** — Current status, completed phases, next actions
 

@@ -148,7 +148,39 @@ async def list_policies(
     
     except Exception as e:
         logger.error(f"❌ Error listing policies: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+        # Return demo data if database is unavailable (for development)
+        if "Connect call failed" in str(e) or "Could not connect" in str(e):
+            logger.warning("📋 Database unavailable, returning demo data")
+            demo_policies = [
+                {
+                    "id": "demo-p1",
+                    "title": "Data Protection Policy",
+                    "content": "All data shall be encrypted at rest and in transit...",
+                    "department": "IT",
+                    "owner": "security@compliance.io",
+                    "version": "1.0",
+                    "qdrant_ids": [],
+                    "created_at": datetime.now().isoformat()
+                },
+                {
+                    "id": "demo-p2",
+                    "title": "Access Control Policy",
+                    "content": "Access shall be granted based on least privilege principle...",
+                    "department": "Security",
+                    "owner": "access@compliance.io",
+                    "version": "2.1",
+                    "qdrant_ids": [],
+                    "created_at": datetime.now().isoformat()
+                }
+            ]
+            return {
+                "total": len(demo_policies),
+                "skip": skip,
+                "limit": limit,
+                "policies": demo_policies,
+                "note": "Demo data - Database unavailable"
+            }
+        raise HTTPException(status_code=503, detail=f"Database unavailable: {str(e)}")
 
 
 # POST Endpoint: Check policy compliance

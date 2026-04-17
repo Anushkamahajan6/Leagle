@@ -168,7 +168,49 @@ async def list_regulations(
     
     except Exception as e:
         logger.error(f"❌ Error listing regulations: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+        # Return demo data if database is unavailable (for development)
+        if "Connect call failed" in str(e) or "Could not connect" in str(e):
+            logger.warning("📋 Database unavailable, returning demo data")
+            demo_regulations = [
+                {
+                    "id": "demo-1",
+                    "title": "GDPR Article 5 - Principles",
+                    "category": "data_privacy",
+                    "source": "GDPR",
+                    "jurisdiction": "EU",
+                    "risk_level": 8,
+                    "qdrant_ids": [],
+                    "created_at": datetime.now().isoformat()
+                },
+                {
+                    "id": "demo-2",
+                    "title": "CCPA Consumer Privacy Rights",
+                    "category": "data_privacy",
+                    "source": "CCPA",
+                    "jurisdiction": "US",
+                    "risk_level": 7,
+                    "qdrant_ids": [],
+                    "created_at": datetime.now().isoformat()
+                },
+                {
+                    "id": "demo-3",
+                    "title": "SOC 2 Security Controls",
+                    "category": "security",
+                    "source": "SOC 2",
+                    "jurisdiction": "Global",
+                    "risk_level": 6,
+                    "qdrant_ids": [],
+                    "created_at": datetime.now().isoformat()
+                }
+            ]
+            return {
+                "total": len(demo_regulations),
+                "skip": skip,
+                "limit": limit,
+                "regulations": demo_regulations,
+                "note": "Demo data - Database unavailable"
+            }
+        raise HTTPException(status_code=503, detail=f"Database unavailable: {str(e)}")
 
 
 # GET Endpoint: Find similar regulations

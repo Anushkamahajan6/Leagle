@@ -2,6 +2,7 @@ from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, Asyn
 from sqlalchemy.orm import DeclarativeBase
 from core.config import settings
 import logging
+from urllib.parse import urlparse, parse_qsl, urlencode, urlunparse
 
 logger = logging.getLogger(__name__)
 
@@ -11,10 +12,31 @@ class Base(DeclarativeBase):
     pass
 
 
+def _normalize_database_url(database_url: str) -> str:
+    """
+    Normalize PostgreSQL async URLs for SQLAlchemy + asyncpg.
+    Neon URLs often use sslmode=require, while asyncpg expects ssl.
+    """
+    if not database_url.startswith("postgresql+asyncpg://"):
+        return database_url
+
+    parsed = urlparse(database_url)
+    query_params = dict(parse_qsl(parsed.query, keep_blank_values=True))
+
+    if "sslmode" in query_params and "ssl" not in query_params:
+        query_params["ssl"] = query_params.pop("sslmode")
+
+    normalized_query = urlencode(query_params)
+    return urlunparse(parsed._replace(query=normalized_query))
+
+
+normalized_database_url = _normalize_database_url(settings.database_url)
+
+
 # Create async engine with proper configuration for Neon/PostgreSQL
 # Note: asyncpg driver is required for async operations on Neon
 engine = create_async_engine(
-    settings.database_url,
+    normalized_database_url,
     echo=False,  # Set to True for SQL logging in debug
     pool_size=5,  # Small pool for Neon free tier
     max_overflow=10,
