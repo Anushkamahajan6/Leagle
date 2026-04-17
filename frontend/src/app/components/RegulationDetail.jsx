@@ -25,29 +25,29 @@ export default function RegulationDetail({ regulation, onClose }) {
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-8 bg-leagle-bg/80 backdrop-blur-2xl animate-in fade-in duration-300" onClick={onClose}>
-            <div className="glass-card w-full max-w-5xl max-h-[90vh] border-white/10 shadow-[0_0_100px_rgba(0,0,0,0.5)] relative overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}>
+            <div className="glass-card w-full max-w-5xl max-h-[90vh] border-leagle-accent/20 bg-leagle-bg shadow-[0_40px_100px_rgba(0,0,0,0.8)] relative overflow-hidden flex flex-col rounded-sm" onClick={e => e.stopPropagation()}>
                 {/* Visual Accent */}
-                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-leagle-accent/5 rounded-full blur-[120px] -mr-64 -mt-64" />
+                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-leagle-accent/5 rounded-none blur-[120px] -mr-64 -mt-64" />
 
                 <div className="p-10 pb-6 flex justify-between items-start relative z-10">
                     <div className="space-y-4 flex-1">
                         <div className="flex items-center gap-3">
-                            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-leagle-accent bg-leagle-accent/10 px-4 py-1.5 rounded-xl border border-leagle-accent/20">
+                            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-leagle-accent bg-leagle-accent/5 px-4 py-1.5 rounded-sm border border-leagle-accent/20">
                                 Regulation Analysis
                             </span>
                             {regulation.jurisdiction && (
-                                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 bg-white/5 px-4 py-1.5 rounded-xl border border-white/10">
+                                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-500 bg-white/2 px-4 py-1.5 rounded-sm border border-white/10">
                                     Region: {regulation.jurisdiction}
                                 </span>
                             )}
                         </div>
-                        <h2 className="text-4xl font-black text-white tracking-tight leading-tight pr-12">
+                        <h2 className="text-4xl font-serif text-white tracking-tight italic leading-tight pr-12 underline decoration-leagle-accent/20 underline-offset-8">
                             {regulation.title}
                         </h2>
                     </div>
                     <button
                         onClick={onClose}
-                        className="w-12 h-12 bg-white/5 hover:bg-white/10 rounded-2xl flex items-center justify-center text-gray-500 hover:text-white transition-all border border-white/5"
+                        className="w-12 h-12 bg-white/2 hover:bg-white/5 rounded-sm flex items-center justify-center text-gray-500 hover:text-leagle-accent transition-all border border-white/5"
                     >
                         <X size={24} />
                     </button>
@@ -63,12 +63,12 @@ export default function RegulationDetail({ regulation, onClose }) {
                         <div className="space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-700">
                             {/* Analytics Row */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                <div className="glass-card p-10 bg-white/2 border-white/5 group hover:bg-white/5 transition-all">
+                                <div className="glass-card p-10 bg-white/2 border-white/5 group hover:bg-white/4 transition-all rounded-sm">
                                     <div className="flex items-center gap-4 mb-8">
-                                        <div className="p-3 bg-red-500/10 text-red-500 rounded-2xl border border-red-500/20 shadow-[0_0_20px_rgba(239,68,68,0.1)]">
+                                        <div className="p-3 bg-red-500/10 text-red-500 rounded-sm border border-red-500/20">
                                             <ShieldAlert size={24} />
                                         </div>
-                                        <h3 className="font-black text-xl text-white">Risk Exposure</h3>
+                                        <h3 className="font-serif text-xl text-white italic">Risk Exposure</h3>
                                     </div>
                                     <div className="space-y-4">
                                         <div className="flex items-end justify-between">
@@ -90,16 +90,16 @@ export default function RegulationDetail({ regulation, onClose }) {
                                     </div>
                                 </div>
 
-                                <div className="glass-card p-10 bg-white/2 border-white/5">
+                                <div className="glass-card p-10 bg-white/2 border-white/5 rounded-sm">
                                     <div className="flex items-center gap-4 mb-8">
-                                        <div className="p-3 bg-leagle-accent/10 text-leagle-accent rounded-2xl border border-leagle-accent/20 shadow-[0_0_20px_rgba(56,189,248,0.1)]">
+                                        <div className="p-3 bg-leagle-accent/5 text-leagle-accent rounded-sm border border-leagle-accent/20">
                                             <Target size={24} />
                                         </div>
-                                        <h3 className="font-black text-xl text-white">Impact Vectors</h3>
+                                        <h3 className="font-serif text-xl text-white italic">Impact Vectors</h3>
                                     </div>
                                     <div className="flex flex-wrap gap-3">
                                         {intel.impact_areas?.map((area, i) => (
-                                            <span key={i} className="px-4 py-2 bg-leagle-accent/5 border border-leagle-accent/10 rounded-xl text-[10px] font-black text-leagle-accent uppercase tracking-widest">
+                                            <span key={i} className="px-4 py-2 bg-leagle-accent/5 border border-leagle-accent/10 rounded-sm text-[10px] font-black text-leagle-accent uppercase tracking-widest">
                                                 {area}
                                             </span>
                                         ))}
@@ -108,14 +108,14 @@ export default function RegulationDetail({ regulation, onClose }) {
                             </div>
 
                             {/* Executive Summary */}
-                            <div className="glass-card p-12 bg-gradient-to-br from-white/2 to-transparent border-white/5">
+                            <div className="glass-card p-12 bg-white/2 border-white/5 rounded-sm">
                                 <div className="flex items-center gap-4 mb-8">
                                     <BrainCircuit className="text-leagle-accent" size={28} />
-                                    <h3 className="text-2xl font-black text-white tracking-tight">Executive Summary</h3>
+                                    <h3 className="text-2xl font-serif text-white italic tracking-tight underline decoration-leagle-accent/20 underline-offset-8">Executive Summary</h3>
                                 </div>
                                 <div className="relative">
-                                    <div className="absolute -left-6 top-0 w-1 h-full bg-leagle-accent/20 rounded-full" />
-                                    <p className="text-xl text-gray-300 leading-relaxed font-medium italic pl-4">
+                                    <div className="absolute -left-6 top-0 w-1 h-full bg-leagle-accent/30" />
+                                    <p className="text-xl text-gray-300 leading-relaxed font-serif italic pl-4">
                                         &ldquo;{intel.explanation}&rdquo;
                                     </p>
                                 </div>

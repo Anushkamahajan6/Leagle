@@ -20,23 +20,21 @@ export default function RootLayout({ children }) {
                     {/* ✅ Socket.IO disabled - removed WebSocketInitializer */}
                     <Navigation />
                     <div className="pl-[76px] min-h-screen flex flex-col">
-                        <header className="cm-shell-header sticky top-0 z-20 px-7 flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-[9px] bg-gradient-to-br from-blue-700 to-sky-700 text-[10px] font-black text-sky-100 flex items-center justify-center shadow-[0_0_0_1px_rgba(56,189,248,0.25),0_4px_16px_rgba(29,78,216,0.4)]">LG</div>
-                                <h1 className="text-[26px] leading-none font-extrabold tracking-[-0.5px] text-slate-100">
-                                    <span className="text-gradient">Leagle</span>
+                        <header className="cm-shell-header sticky top-0 z-20 px-8 flex items-center justify-between border-b border-leagle-accent/10">
+                            <div className="flex items-center gap-4">
+                                <h1 className="text-2xl italic font-serif tracking-tight text-white">
+                                    <span className="text-leagle-accent">Leagle</span> <span className="text-gray-500 font-light opacity-50">Intelligence</span>
                                 </h1>
                             </div>
-                            <div className="flex items-center gap-2">
-                                <div className="w-[7px] h-[7px] rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.7)] animate-[cm-pulse_2s_ease-in-out_infinite]" />
-                                <span className="text-[11px] font-bold uppercase tracking-[0.08em] text-green-400">System Active</span>
+                            <div className="flex items-center gap-3 bg-white/2 px-4 py-2 border border-white/5 rounded-sm">
+                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-500/80 italic font-serif">Awaiting Directives</span>
                             </div>
                         </header>
+                        <div className="h-[2px] w-full bg-leagle-accent/40 sticky top-[68px] z-20 shadow-[0_1px_10px_rgba(197,160,89,0.2)]" />
 
-                        <main className="flex-1 p-6">
-                            <section className="max-w-[1400px] mx-auto cm-shell-frame p-6 min-h-[70vh]">
-                                {children}
-                            </section>
+                        <main className="flex-1 p-12 overflow-x-hidden">
+                            {children}
                         </main>
                     </div>
                 </QueryProvider>

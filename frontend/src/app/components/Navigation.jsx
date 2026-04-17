@@ -38,8 +38,8 @@ export default function Navigation() {
     return (
         <aside className="fixed left-0 top-0 bottom-0 w-[76px] min-h-screen shrink-0 bg-[rgba(2,9,22,0.98)] border-r border-[rgba(56,189,248,0.09)] z-30 flex flex-col items-center">
             <div className="w-full py-[18px] border-b border-white/5 flex justify-center">
-                <div className="w-10 h-10 rounded-[11px] bg-gradient-to-br from-blue-700 to-sky-700 flex items-center justify-center text-[10px] font-black text-sky-100 tracking-[-0.3px] shadow-[0_0_0_1px_rgba(56,189,248,0.3),0_6px_20px_rgba(29,78,216,0.5)]">
-                    LG
+                <div className="w-8 h-8 flex items-center justify-center text-leagle-accent">
+                    <Scale size={20} />
                 </div>
             </div>
 
