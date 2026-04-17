@@ -9,23 +9,11 @@ from core.config import settings
 
 logger = logging.getLogger(__name__)
 
-def _get_llm():
-    """Instantiate LLM (Gemini or Groq) from settings."""
-    if settings.llm_provider == "groq":
-        from langchain_groq import ChatGroq
-        return ChatGroq(
-            model_name="llama-3.3-70b-versatile",
-            groq_api_key=settings.groq_api_key,
-            temperature=0.1,
-        )
-    
-    # Default to Gemini
-    return ChatGoogleGenerativeAI(
-        model=settings.llm_model,
-        google_api_key=settings.gemini_api_key,
-        temperature=0.1,
-        max_tokens=2048,
-    )
+from core.llm_factory import LLMFactory
+
+def _get_llm(temperature=0.1, max_tokens=2048):
+    """Instantiate LLM with automatic fallback via LLMFactory."""
+    return LLMFactory.get_llm(temperature=temperature, max_tokens=max_tokens)
 
 IMPACT_ANALYSIS_PROMPT = ChatPromptTemplate.from_messages([
     ("system", """You are a senior compliance officer with expertise in regulatory analysis.
@@ -109,15 +97,27 @@ async def analyze_impact(
     if not context:
         context = "No additional context available in the knowledge base."
 
-    llm = _get_llm()
-    chain = IMPACT_ANALYSIS_PROMPT | llm | StrOutputParser()
-
     try:
-        raw_response = await chain.ainvoke({
-            "context": context,
-            "regulation_text": f"{regulation_title}\n\n{regulation_text}"[:3000],
-            "policy_text": f"{policy_title}\n\n{policy_text}"[:2000],
-        })
+        try:
+            llm = _get_llm()
+            chain = IMPACT_ANALYSIS_PROMPT | llm | StrOutputParser()
+            raw_response = await chain.ainvoke({
+                "context": context,
+                "regulation_text": f"{regulation_title}\n\n{regulation_text}"[:3000],
+                "policy_text": f"{policy_title}\n\n{policy_text}"[:2000],
+            })
+        except Exception as e:
+            if "429" in str(e) or "quota" in str(e).lower() or "resource_exhausted" in str(e).lower():
+                logger.warning(f"⚠️ Gemini Quota Exceeded. Falling back to Groq for Impact Analysis...")
+                fallback_llm = LLMFactory.get_llm(provider="groq", temperature=0.1)
+                chain = IMPACT_ANALYSIS_PROMPT | fallback_llm | StrOutputParser()
+                raw_response = await chain.ainvoke({
+                    "context": context,
+                    "regulation_text": f"{regulation_title}\n\n{regulation_text}"[:3000],
+                    "policy_text": f"{policy_title}\n\n{policy_text}"[:2000],
+                })
+            else:
+                raise e
 
         clean = raw_response.strip()
         if clean.startswith("```"):

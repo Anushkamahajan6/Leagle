@@ -246,6 +246,56 @@ def semantic_search(
     ]
 
 
+def upsert_vectors(
+    vectors: List[List[float]],
+    chunks: List[str],
+    metadata: Dict[str, Any],
+    source_type: str = "policy",
+) -> List[str]:
+    """
+    Upsert pre-computed vectors and chunks to Qdrant.
+    
+    Args:
+        vectors: List of embedding vectors
+        chunks: List of corresponding text chunks
+        metadata: Dict with document info
+        source_type: "regulation" or "policy"
+        
+    Returns:
+        List of point IDs created
+    """
+    ensure_collection_exists()
+    client = get_qdrant_client()
+    
+    points = []
+    point_ids = []
+    
+    for i, (vector, chunk) in enumerate(zip(vectors, chunks)):
+        point_id = str(uuid.uuid4())
+        payload = {
+            **metadata,
+            "chunk_index": i,
+            "text": chunk, # Store full chunk in payload for comparison
+            "source_type": source_type,
+        }
+        
+        points.append(PointStruct(
+            id=point_id,
+            vector=vector,
+            payload=payload,
+        ))
+        point_ids.append(point_id)
+        
+    if points:
+        client.upsert(
+            collection_name=COLLECTION_NAME,
+            points=points,
+        )
+        logger.info(f"✅ Upserted {len(points)} points to Qdrant (Source: {source_type})")
+        
+    return point_ids
+
+
 def delete_points(point_ids: List[str]) -> None:
     """Remove points from Qdrant (e.g., when deleting a regulation)"""
     if not point_ids:

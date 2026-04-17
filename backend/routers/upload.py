@@ -4,6 +4,7 @@ import logging
 from services.pdf_service import extract_text_from_pdf
 from services.chunk_service import split_text
 from services.embedding_service import generate_embeddings
+from services.qdrant_service import upsert_vectors
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -93,6 +94,23 @@ async def upload_pdf(file: UploadFile = File(...), debug: bool = False):
             )
         
         logger.info(f"Embedding generation complete: {len(embeddings)} embeddings")
+        
+        # 5. Persist to Qdrant
+        metadata = {
+            "title": filename,
+            "filename": filename,
+            "file_size": file_size_mb,
+            "num_pages": extraction_result["num_pages"],
+            "uploaded": True,
+        }
+        point_ids = upsert_vectors(
+            vectors=embeddings,
+            chunks=chunks,
+            metadata=metadata,
+            source_type="policy" # Tag as policy for comparison against regulations
+        )
+        
+        logger.info(f"Persisted {len(point_ids)} points to Qdrant")
         
         # Compile response
         response_data = {

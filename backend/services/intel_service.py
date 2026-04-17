@@ -1,9 +1,9 @@
 import logging
 from typing import Dict, Any
-from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from core.config import settings
+from core.llm_factory import LLMFactory
 from services.risk_scorer import score_regulation
 
 logger = logging.getLogger(__name__)
@@ -24,12 +24,9 @@ Analyze this regulation:"""),
 
 class RegulationIntelligenceService:
     @staticmethod
-    def _get_llm():
-        return ChatGoogleGenerativeAI(
-            model=settings.llm_model,
-            google_api_key=settings.gemini_api_key,
-            temperature=0,
-        )
+    def _invoke_chain(chain, input_data):
+        """Helper to invoke with factory-level fallback."""
+        return chain.ainvoke(input_data)
 
     @staticmethod
     async def get_regulation_intel(title: str, text: str) -> Dict[str, Any]:
@@ -41,17 +38,26 @@ class RegulationIntelligenceService:
         
         # 2. AI Intelligence (Explanation + Comparison)
         try:
-            llm = RegulationIntelligenceService._get_llm()
-            chain = INTEL_PROMPT | llm | StrOutputParser()
-            
-            # Use first 5000 characters for analysis
-            analysis_text = text[:5000]
-            
-            logger.info(f"🧠 Generating Intelligence Profile for: {title[:50]}...")
-            raw_response = await chain.ainvoke({
-                "title": title,
-                "text": analysis_text
-            })
+            try:
+                llm = LLMFactory.get_llm(provider="gemini")
+                chain = INTEL_PROMPT | llm | StrOutputParser()
+                analysis_text = text[:5000]
+                logger.info(f"🧠 Generating Intelligence Profile for: {title[:50]}...")
+                raw_response = await chain.ainvoke({
+                    "title": title,
+                    "text": analysis_text
+                })
+            except Exception as gemini_err:
+                if "429" in str(gemini_err) or "quota" in str(gemini_err).lower() or "resource_exhausted" in str(gemini_err).lower():
+                    logger.warning(f"⚠️ Gemini Quota Exceeded. Falling back to Groq...")
+                    llm = LLMFactory.get_llm(provider="groq")
+                    chain = INTEL_PROMPT | llm | StrOutputParser()
+                    raw_response = await chain.ainvoke({
+                        "title": title,
+                        "text": text[:5000]
+                    })
+                else:
+                    raise gemini_err
             
             # Clean up JSON if LLM adds markdown blocks
             json_str = raw_response.strip().replace("```json", "").replace("```", "")

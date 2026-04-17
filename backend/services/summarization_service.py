@@ -1,10 +1,10 @@
 import logging
 import json
 from typing import List, Dict, Any
-from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from core.config import settings
+from core.llm_factory import LLMFactory
 
 logger = logging.getLogger(__name__)
 
@@ -24,20 +24,8 @@ Generate a comprehensive compliance summary:"""),
 class SummarizationService:
     @staticmethod
     def _get_llm():
-        """Get LLM based on provider settings."""
-        if settings.llm_provider == "groq":
-            from langchain_groq import ChatGroq
-            return ChatGroq(
-                model_name="mixtral-8x7b-32768", # High context for summarization
-                groq_api_key=settings.groq_api_key,
-                temperature=0,
-            )
-        
-        return ChatGoogleGenerativeAI(
-            model=settings.llm_model,
-            google_api_key=settings.gemini_api_key,
-            temperature=0,
-        )
+        """Get LLM with fallback via LLMFactory."""
+        return LLMFactory.get_llm(temperature=0)
 
     @staticmethod
     async def summarize_document(text: str, title: str = "", source: str = "") -> str:
@@ -51,24 +39,28 @@ class SummarizationService:
             return text  # Already short enough
 
         try:
-            llm = SummarizationService._get_llm()
-            chain = SUMMARIZATION_PROMPT | llm | StrOutputParser()
-            
-            # Truncate input for simple summarization
-            # (In a real system, you might do recursive summarization)
-            sample_text = text[:30000] 
-            
-            logger.info(f"🔄 Summarizing document: {title[:50]}...")
-            summary = await chain.ainvoke({
-                "title": title,
-                "source": source,
-                "text": sample_text,
-            })
-            
-            return summary.strip()
-        except Exception as e:
-            if "RESOURCE_EXHAUSTED" in str(e) or "429" in str(e):
-                logger.warning(f"⚠️ Gemini Quota Exhausted! Falling back to raw text (truncated).")
-                return text[:5000] # Use first 5k chars as "summary"
+            try:
+                llm = SummarizationService._get_llm()
+                chain = SUMMARIZATION_PROMPT | llm | StrOutputParser()
+                sample_text = text[:30000] 
+                logger.info(f"🔄 Summarizing document: {title[:50]}...")
+                summary = await chain.ainvoke({
+                    "title": title,
+                    "source": source,
+                    "text": sample_text,
+                })
+                return summary.strip()
+            except Exception as e:
+                if "429" in str(e) or "quota" in str(e).lower() or "resource_exhausted" in str(e).lower():
+                    logger.warning(f"⚠️ Gemini Quota Exhausted! Falling back to Groq for Summarization...")
+                    fallback_llm = LLMFactory.get_llm(provider="groq", temperature=0)
+                    chain = SUMMARIZATION_PROMPT | fallback_llm | StrOutputParser()
+                    summary = await chain.ainvoke({
+                        "title": title,
+                        "source": source,
+                        "text": text[:30000],
+                    })
+                    return summary.strip()
+                raise e
             logger.error(f"❌ Summarization failed: {e}")
             return text[:5000] # Fallback to truncation if LLM fails
