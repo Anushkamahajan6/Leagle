@@ -1,304 +1,106 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, desc
+from core.database import get_db
+from models.regulation import Regulation
+from services.ingestion import ingest_regulation, parse_pdf
+from services.alert_engine import run_impact_analysis
 from pydantic import BaseModel
 from typing import Optional
-from uuid import uuid4
-from datetime import datetime
-import logging
-from sqlalchemy import select
+from datetime import date
 
-from services.qdrant_service import embed_and_upsert, semantic_search
-from models.regulation import Regulation
-from core.database import get_db, AsyncSession
+router = APIRouter()
 
-router = APIRouter(prefix="/api/regulations", tags=["regulations"])
-logger = logging.getLogger(__name__)
-
-
-# Request/Response models
-class RegulationIngestRequest(BaseModel):
+class RegulationCreate(BaseModel):
     title: str
     text: str
-    category: str
-    source: str
-    jurisdiction: str
-    effective_date: Optional[str] = None
-
+    source: Optional[str] = None
+    category: Optional[str] = None
+    jurisdiction: Optional[str] = None
+    effective_date: Optional[date] = None
 
 class RegulationResponse(BaseModel):
     id: str
     title: str
-    category: str
-    source: str
-    jurisdiction: str
+    source: Optional[str]
+    category: Optional[str]
     risk_level: int
-    qdrant_ids: list
-    created_at: datetime
+    created_at: str
 
     class Config:
         from_attributes = True
 
-
-class SimilarDocumentResponse(BaseModel):
-    qdrant_id: int
-    title: str
-    source_type: str
-    source: str
-    similarity_score: float
-
-
-class SimilarRegulationsResponse(BaseModel):
-    regulation_id: str
-    query_title: str
-    similar_documents: list[SimilarDocumentResponse]
-    total_results: int
-
-
-# POST Endpoint: Ingest new regulation
-@router.post("/ingest", response_model=RegulationResponse)
-async def ingest_regulation(
-    request: RegulationIngestRequest,
-    db: AsyncSession = Depends(get_db)
+@router.post("/ingest", status_code=201)
+async def ingest_regulation_text(
+    payload: RegulationCreate,
+    db: AsyncSession = Depends(get_db),
 ):
-    """
-    Ingest a new regulation:
-    1. Embed text chunks to Qdrant
-    2. Store regulation record in PostgreSQL
-    3. Return regulation ID and chunk IDs
-    
-    Example:
-    {
-      "title": "GDPR Article 36",
-      "text": "Where required, the controller shall...",
-      "category": "data_privacy",
-      "source": "GDPR",
-      "jurisdiction": "EU",
-      "effective_date": "2018-05-25"
-    }
-    """
-    try:
-        # 1. Embed and upsert to Qdrant
-        qdrant_ids = embed_and_upsert(
-            text=request.text,
-            metadata={
-                "title": request.title,
-                "source": request.source,
-                "jurisdiction": request.jurisdiction,
-                "category": request.category,
-            },
-            source_type="regulation"
-        )
-        
-        # 2. Create regulation record in PostgreSQL
-        regulation = Regulation(
-            id=uuid4(),
-            title=request.title,
-            category=request.category,
-            raw_text=request.text,
-            source=request.source,
-            jurisdiction=request.jurisdiction,
-            effective_date=request.effective_date,
-            qdrant_ids=qdrant_ids,
-            risk_level=50,  # Default, will be updated by ML model
-        )
-        
-        db.add(regulation)
-        await db.commit()
-        await db.refresh(regulation)
-        
-        logger.info(f"✅ Ingested regulation '{request.title}' ({len(qdrant_ids)} chunks)")
-        
-        return regulation
-    
-    except Exception as e:
-        await db.rollback()
-        logger.error(f"❌ Error ingesting regulation: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+    """Ingest regulation from raw text → embed → Qdrant → impact analysis."""
+    regulation = await ingest_regulation(
+        db=db,
+        title=payload.title,
+        text=payload.text,
+        source=payload.source,
+        category=payload.category,
+        jurisdiction=payload.jurisdiction,
+        effective_date=payload.effective_date,
+    )
+    # Trigger impact analysis in background (simplified: run synchronously for demo)
+    await run_impact_analysis(db, regulation)
 
+    return {"id": str(regulation.id), "title": regulation.title, "risk_level": regulation.risk_level}
 
-# GET Endpoint: Retrieve regulation by ID
-@router.get("/{regulation_id}", response_model=RegulationResponse)
-async def get_regulation(
-    regulation_id: str,
-    db: AsyncSession = Depends(get_db)
+@router.post("/upload-pdf", status_code=201)
+async def upload_regulation_pdf(
+    file: UploadFile = File(...),
+    title: str = Form(...),
+    category: str = Form(None),
+    db: AsyncSession = Depends(get_db),
 ):
-    """Get regulation by ID with metadata"""
-    try:
-        result = await db.execute(
-            select(Regulation).where(Regulation.id == regulation_id)
-        )
-        regulation = result.scalar_one_or_none()
-        
-        if not regulation:
-            raise HTTPException(status_code=404, detail="Regulation not found")
-        
-        return regulation
-    
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"❌ Error retrieving regulation: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+    """Upload a regulation PDF → parse → ingest."""
+    if not file.filename.endswith(".pdf"):
+        raise HTTPException(400, "Only PDF files are accepted")
 
+    file_bytes = await file.read()
+    text = parse_pdf(file_bytes)
 
-# GET Endpoint: List all regulations
-@router.get("")
-async def list_regulations(
-    skip: int = 0,
-    limit: int = 10,
-    category: Optional[str] = None,
-    db: AsyncSession = Depends(get_db)
-):
-    """List all regulations with optional filtering"""
-    try:
-        query = select(Regulation)
-        
-        if category:
-            query = query.where(Regulation.category == category)
-        
-        query = query.offset(skip).limit(limit)
-        result = await db.execute(query)
-        regulations = result.scalars().all()
-        
-        return {
-            "total": len(regulations),
-            "skip": skip,
-            "limit": limit,
-            "regulations": regulations
+    if not text.strip():
+        raise HTTPException(422, "Could not extract text from PDF")
+
+    regulation = await ingest_regulation(db=db, title=title, text=text, category=category)
+    await run_impact_analysis(db, regulation)
+
+    return {"id": str(regulation.id), "title": regulation.title, "chunks_extracted": len(text.split())}
+
+@router.get("/")
+async def list_regulations(db: AsyncSession = Depends(get_db)):
+    result = await db.execute(
+        select(Regulation).order_by(desc(Regulation.created_at)).limit(50)
+    )
+    regulations = result.scalars().all()
+    return [
+        {
+            "id": str(r.id), "title": r.title, "source": r.source,
+            "category": r.category, "risk_level": r.risk_level,
+            "created_at": r.created_at.isoformat(),
         }
-    
-    except Exception as e:
-        logger.error(f"❌ Error listing regulations: {str(e)}")
-        # Return demo data if database is unavailable (for development)
-        if "Connect call failed" in str(e) or "Could not connect" in str(e):
-            logger.warning("📋 Database unavailable, returning demo data")
-            demo_regulations = [
-                {
-                    "id": "demo-1",
-                    "title": "GDPR Article 5 - Principles",
-                    "category": "data_privacy",
-                    "source": "GDPR",
-                    "jurisdiction": "EU",
-                    "risk_level": 8,
-                    "qdrant_ids": [],
-                    "created_at": datetime.now().isoformat()
-                },
-                {
-                    "id": "demo-2",
-                    "title": "CCPA Consumer Privacy Rights",
-                    "category": "data_privacy",
-                    "source": "CCPA",
-                    "jurisdiction": "US",
-                    "risk_level": 7,
-                    "qdrant_ids": [],
-                    "created_at": datetime.now().isoformat()
-                },
-                {
-                    "id": "demo-3",
-                    "title": "SOC 2 Security Controls",
-                    "category": "security",
-                    "source": "SOC 2",
-                    "jurisdiction": "Global",
-                    "risk_level": 6,
-                    "qdrant_ids": [],
-                    "created_at": datetime.now().isoformat()
-                }
-            ]
-            return {
-                "total": len(demo_regulations),
-                "skip": skip,
-                "limit": limit,
-                "regulations": demo_regulations,
-                "note": "Demo data - Database unavailable"
-            }
-        raise HTTPException(status_code=503, detail=f"Database unavailable: {str(e)}")
+        for r in regulations
+    ]
 
-
-# GET Endpoint: Find similar regulations
 @router.get("/{regulation_id}/similar")
-async def get_similar_regulations(
-    regulation_id: str,
-    top_k: int = 5,
-    score_threshold: float = 0.3,
-    db: AsyncSession = Depends(get_db)
-):
-    """
-    Find regulations and policies similar to the given regulation.
-    Uses Qdrant semantic search.
-    
-    Example: /api/regulations/abc123/similar?top_k=5&score_threshold=0.3
-    """
-    try:
-        # Get the regulation text
-        result = await db.execute(
-            select(Regulation).where(Regulation.id == regulation_id)
-        )
-        regulation = result.scalar_one_or_none()
-        
-        if not regulation:
-            raise HTTPException(status_code=404, detail="Regulation not found")
-        
-        # Semantic search using Qdrant
-        similar_docs = semantic_search(
-            query_text=regulation.raw_text,
-            top_k=top_k,
-            score_threshold=score_threshold
-        )
-        
-        return SimilarRegulationsResponse(
-            regulation_id=regulation_id,
-            query_title=regulation.title,
-            similar_documents=[
-                SimilarDocumentResponse(
-                    qdrant_id=doc["id"],
-                    title=doc["payload"].get("title", "Unknown"),
-                    source_type=doc["payload"].get("source_type", "unknown"),
-                    source=doc["payload"].get("source", "unknown"),
-                    similarity_score=doc["score"],
-                )
-                for doc in similar_docs
-            ],
-            total_results=len(similar_docs)
-        )
-    
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"❌ Error searching similar regulations: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+async def get_similar_regulations(regulation_id: str, top_k: int = 5, db: AsyncSession = Depends(get_db)):
+    """Find top-K semantically similar regulations using Qdrant."""
+    result = await db.execute(select(Regulation).where(Regulation.id == regulation_id))
+    regulation = result.scalar_one_or_none()
+    if not regulation:
+        raise HTTPException(404, "Regulation not found")
 
-
-# DELETE Endpoint: Delete regulation
-@router.delete("/{regulation_id}")
-async def delete_regulation(
-    regulation_id: str,
-    db: AsyncSession = Depends(get_db)
-):
-    """Delete a regulation and remove its vectors from Qdrant"""
-    try:
-        result = await db.execute(
-            select(Regulation).where(Regulation.id == regulation_id)
-        )
-        regulation = result.scalar_one_or_none()
-        
-        if not regulation:
-            raise HTTPException(status_code=404, detail="Regulation not found")
-        
-        # Remove vectors from Qdrant
-        if regulation.qdrant_ids:
-            from services.qdrant_service import delete_points
-            delete_points(regulation.qdrant_ids)
-        
-        # Delete from PostgreSQL
-        await db.delete(regulation)
-        await db.commit()
-        
-        logger.info(f"✅ Deleted regulation '{regulation.title}'")
-        
-        return {"status": "deleted", "regulation_id": regulation_id}
-    
-    except HTTPException:
-        raise
-    except Exception as e:
-        await db.rollback()
-        logger.error(f"❌ Error deleting regulation: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+    from services.qdrant_service import semantic_search
+    similar = semantic_search(
+        query_text=regulation.raw_text[:500],
+        top_k=top_k + 1,
+        source_type_filter="regulation",
+    )
+    # Exclude self
+    filtered = [s for s in similar if str(s.get("regulation_id")) != str(regulation_id)][:top_k]
+    return filtered

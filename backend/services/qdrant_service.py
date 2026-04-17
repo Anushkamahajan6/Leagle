@@ -214,14 +214,15 @@ def semantic_search(
         )
     
     # Search
-    results = client.search(
+    response = client.query_points(
         collection_name=COLLECTION_NAME,
-        query_vector=query_vector,
+        query=query_vector,
         query_filter=query_filter,
         limit=top_k,
         with_payload=True,
         score_threshold=score_threshold,
     )
+    results = response.points
     
     return [
         {

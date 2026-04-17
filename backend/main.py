@@ -1,72 +1,54 @@
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
 import logging
 from contextlib import asynccontextmanager
-
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from core.config import settings
 from core.database import create_tables
-from routers import regulations, policies
+from services.qdrant_service import ensure_collection_exists
+
+# Import all routers
+from routers import regulations, policies, impact, alerts, rag
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Lifespan context manager for startup/shutdown events"""
-    # Startup
+    """Run on startup and shutdown."""
+    logger.info("Starting up...")
     await create_tables()
-    logger.info("✅ FastAPI server started")
+    ensure_collection_exists()
+    logger.info("Infrastructure ready.")
     yield
-    # Shutdown
-    logger.info("🛑 FastAPI server shutdown")
+    logger.info("Shutting down...")
 
 
 app = FastAPI(
-    title="CodeWizards AI Compliance API",
-    description="Semantic regulation analysis and compliance management system",
-    version="0.1.0",
-    lifespan=lifespan
+    title="AI Compliance Management System",
+    version="1.0.0",
+    description="Regulatory intelligence platform powered by Qdrant + LLM RAG",
+    lifespan=lifespan,
 )
 
-# CORS middleware for frontend communication
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:3001", "http://localhost:8000"],
+    allow_origins=["http://localhost:5173", "http://localhost:3000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Include routers
-app.include_router(regulations.router)
-app.include_router(policies.router)
-# More routers will be added:
-# app.include_router(impact.router)
-# app.include_router(alerts.router)
-# app.include_router(rag.router)
+app.include_router(regulations.router, prefix="/api/regulations", tags=["regulations"])
+app.include_router(policies.router, prefix="/api/policies", tags=["policies"])
+app.include_router(impact.router, prefix="/api/impact", tags=["impact"])
+app.include_router(alerts.router, prefix="/api/alerts", tags=["alerts"])
+app.include_router(rag.router, prefix="/api/rag", tags=["rag"])
 
 
 @app.get("/health")
 async def health_check():
-    """Health check endpoint"""
-    return {
-        "status": "healthy",
-        "service": "CodeWizards Compliance API",
-        "version": "0.1.0"
-    }
-
-
-@app.get("/")
-async def root():
-    """Root endpoint with API info"""
-    return {
-        "name": "CodeWizards AI Compliance Management System",
-        "description": "Semantic regulation analysis and compliance tracking",
-        "docs_url": "/docs",
-        "version": "0.1.0"
-    }
-
+    return {"status": "ok", "version": "1.0.0"}
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

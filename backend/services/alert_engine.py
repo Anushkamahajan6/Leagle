@@ -1,0 +1,93 @@
+import logging
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
+from models.regulation import Regulation
+from models.policy import Policy
+from models.impact import ImpactMapping
+from models.alert import Alert
+from services.qdrant_service import semantic_search
+from services.risk_scorer import score_to_level
+
+logger = logging.getLogger(__name__)
+
+SIMILARITY_THRESHOLDS = {
+    "HIGH": 0.75,
+    "MEDIUM": 0.50,
+    "LOW": 0.30,
+}
+
+async def run_impact_analysis(
+    db: AsyncSession,
+    regulation: Regulation,
+) -> list[ImpactMapping]:
+    """
+    For a newly ingested regulation:
+    1. Search Qdrant for similar policy chunks (source_type=policy)
+    2. Create ImpactMapping records
+    3. Fire alerts for HIGH/MEDIUM impacts
+    Returns list of created ImpactMapping records.
+    """
+    if not regulation.raw_text:
+        return []
+
+    # Search specifically in policy vectors
+    similar_policies = semantic_search(
+        query_text=regulation.raw_text[:1000],   # use first 1000 chars as query
+        top_k=10,
+        source_type_filter="policy",
+        score_threshold=SIMILARITY_THRESHOLDS["LOW"],
+    )
+
+    # Deduplicate by policy_id (take the highest score per policy)
+    seen_policy_ids: dict[str, dict] = {}
+    for result in similar_policies:
+        pid = result.get("policy_id")
+        if pid and (pid not in seen_policy_ids or result["score"] > seen_policy_ids[pid]["score"]):
+            seen_policy_ids[pid] = result
+
+    mappings_created = []
+
+    for policy_id_str, result in seen_policy_ids.items():
+        score = result["score"]
+        impact_level = (
+            "HIGH" if score >= SIMILARITY_THRESHOLDS["HIGH"]
+            else "MEDIUM" if score >= SIMILARITY_THRESHOLDS["MEDIUM"]
+            else "LOW"
+        )
+
+        # Check if mapping already exists
+        existing = await db.execute(
+            select(ImpactMapping).where(
+                ImpactMapping.regulation_id == regulation.id,
+                ImpactMapping.policy_id == policy_id_str,
+            )
+        )
+        if existing.scalar_one_or_none():
+            continue
+
+        mapping = ImpactMapping(
+            regulation_id=regulation.id,
+            policy_id=policy_id_str,
+            similarity=score,
+            impact_level=impact_level,
+            status="OPEN",
+        )
+        db.add(mapping)
+        mappings_created.append(mapping)
+
+        # Create alert for HIGH and MEDIUM impacts
+        if impact_level in ("HIGH", "MEDIUM"):
+            alert = Alert(
+                regulation_id=regulation.id,
+                severity=impact_level,
+                message=(
+                    f"{impact_level} impact detected: Regulation '{regulation.title}' "
+                    f"affects policy (similarity: {score:.2f}). "
+                    f"Risk score: {regulation.risk_level}/100."
+                ),
+            )
+            db.add(alert)
+
+    await db.commit()
+    logger.info(f"Created {len(mappings_created)} impact mappings for: {regulation.title}")
+    return mappings_created
