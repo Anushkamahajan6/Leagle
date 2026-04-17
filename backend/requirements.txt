@@ -1,0 +1,51 @@
+# Web framework
+fastapi==0.115.4
+uvicorn[standard]==0.32.1
+python-multipart==0.0.17
+
+# Qdrant
+qdrant-client==1.12.1
+
+# Embeddings
+sentence-transformers>=3.3.0
+torch>=2.9.0
+numpy>=1.26.0,<2.0.0
+
+# LangChain (split packages — current structure as of 2024)
+langchain>=0.3.7
+langchain-core>=0.3.19
+langchain-community>=0.3.7
+langchain-google-genai>=2.0.5
+
+# LLM
+google-generativeai==0.8.3
+
+# Database — SQLAlchemy 2.0 ORM + async PostgreSQL driver
+sqlalchemy>=2.0.0,<3.0.0
+alembic>=1.14.0
+asyncpg>=0.30.0
+psycopg[binary]>=3.2.0
+
+# Data validation
+pydantic==2.10.2
+pydantic-settings==2.6.1
+
+# Background tasks
+celery==5.4.0
+redis==5.2.0
+
+# Scheduling
+apscheduler==3.10.4
+
+# Web scraping
+httpx==0.28.0
+beautifulsoup4==4.12.3
+
+# PDF parsing
+pypdf==5.1.0
+# Data loading
+datasets>=3.0.0
+# Utilities
+python-dotenv==1.0.1
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
