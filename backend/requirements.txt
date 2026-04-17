@@ -4,6 +4,7 @@ uvicorn[standard]==0.32.1
 python-multipart==0.0.17
 python-socketio==5.11.0
 python-dotenv>=1.0.0
+twilio>=9.0.0
 
 # Qdrant
 qdrant-client==1.12.1

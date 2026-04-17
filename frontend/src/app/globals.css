@@ -1,14 +1,5 @@
 @import "tailwindcss";
 
-@theme {
-  --color-leagle-bg: #050709;
-  --color-leagle-navy: #0F141A;
-  --color-leagle-accent: #C5A059;
-  --color-leagle-gold: #C5A059;
-  --color-leagle-glass: rgba(10, 15, 20, 0.9);
-  --color-leagle-border: rgba(197, 160, 89, 0.15);
-}
-
 @layer base {
   :root {
     --leagle-bg: #050709;
@@ -17,11 +8,22 @@
     --leagle-gold: #C5A059;
     --leagle-glass: rgba(10, 15, 20, 0.9);
     --leagle-border: rgba(197, 160, 89, 0.15);
+
+    color-scheme: dark;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   body {
-    background-color: var(--leagle-bg) !important;
-    color: #f3f4f6 !important;
+    background-color: var(--leagle-bg);
+    color: #f3f4f6;
     margin: 0;
     padding: 0;
     min-height: 100vh;
@@ -38,7 +40,6 @@
   }
 
   @keyframes cm-pulse {
-
     0%,
     100% {
       opacity: 1;
@@ -165,6 +166,39 @@
 }
 
 @layer utilities {
+  /* ✅ Override Tailwind white colors with accent */
+  .text-leagle-accent,
+  .text-accent {
+    color: var(--leagle-accent);
+  }
+
+  .bg-leagle-accent {
+    background-color: var(--leagle-accent);
+  }
+
+  .border-leagle-accent {
+    border-color: var(--leagle-accent);
+  }
+
+  .shadow-leagle-accent {
+    box-shadow: 0 0 20px rgba(197, 160, 89, 0.3);
+  }
+
+  /* Fix text-gradient to use proper text color */
+  .text-gradient {
+    background: linear-gradient(to right, var(--leagle-accent), #ffffff);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: var(--leagle-accent);
+  }
+
+  /* Ensure span with text-leagle-accent uses the right color */
+  span.text-leagle-accent {
+    color: var(--leagle-accent) !important;
+  }
+
+  /* Fix any .bg-mesh references */
   .bg-mesh {
     background: var(--leagle-bg);
   }
