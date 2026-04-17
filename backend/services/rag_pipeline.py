@@ -4,6 +4,7 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from services.qdrant_service import semantic_search
+from services.risk_service import RiskService
 from core.config import settings
 
 logger = logging.getLogger(__name__)
@@ -150,12 +151,21 @@ async def rag_question_answer(question: str) -> dict:
         for c in chunks
     ])
 
+    # Get Local ML prediction as a secondary anchor
+    risk_service = RiskService()
+    local_risk = risk_service.predict_risk(question)
+    
     llm = _get_llm()
     chain = SEMANTIC_SEARCH_PROMPT | llm | StrOutputParser()
 
-    answer = await chain.ainvoke({"context": context, "question": question})
+    # Pass local risk to LLM for awareness
+    answer = await chain.ainvoke({
+        "context": context, 
+        "question": f"{question} (Internal ML Signal: {local_risk})"
+    })
 
     return {
         "answer": answer,
+        "local_ml_risk": local_risk,
         "sources": [{"title": c.get("title"), "score": c["score"]} for c in chunks],
     }

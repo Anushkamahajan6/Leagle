@@ -92,7 +92,8 @@ async def seed_all_datasets(
             reg_chunks = RegulatoryDatasetSeeder.seed_regulatory_data()
             lex_chunks = RegulatoryDatasetSeeder.seed_from_lexglue()
             gdpr_chunks = await RegulatoryDatasetSeeder.seed_gdpr_cases(max_samples=500)
-            results["regulatory_chunks"] = reg_chunks + lex_chunks + gdpr_chunks
+            custom_chunks = RegulatoryDatasetSeeder.seed_custom_training_data()
+            results["regulatory_chunks"] = reg_chunks + lex_chunks + gdpr_chunks + custom_chunks
         except Exception as e:
             logger.error(f"Error seeding regulatory data: {e}")
             results["regulatory_chunks"] = 0

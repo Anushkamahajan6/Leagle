@@ -16,6 +16,8 @@ Datasets integrated:
 import logging
 from typing import List, Dict, Any, Optional, Tuple
 import json
+import os
+import pandas as pd
 from services.qdrant_service import embed_and_upsert
 
 logger = logging.getLogger(__name__)
@@ -431,6 +433,57 @@ class RegulatoryDatasetSeeder:
             
         except Exception as e:
             logger.error(f"❌ Error seeding GDPR cases: {e}")
+            return 0
+
+    @staticmethod
+    def seed_custom_training_data(
+        csv_path: str = "/home/perseuskyogre/Projects/CodeWizards/backend/data/training/legal_text_classified_priority.csv",
+        max_samples: int = 1000,
+    ) -> int:
+        """
+        Seed the custom labeled training data into Qdrant.
+        """
+        logger.info(f"🔄 Seeding Custom Training Data from {csv_path}...")
+        
+        if not os.path.exists(csv_path):
+            logger.warning(f"⚠️ Custom data file not found at {csv_path}")
+            return 0
+
+        try:
+            df = pd.read_csv(csv_path)
+            df = df.head(max_samples)
+            
+            total_chunks = 0
+            for _, row in df.iterrows():
+                try:
+                    text = str(row.get("case_text", ""))
+                    if not text or len(text) < 50:
+                        continue
+                        
+                    metadata = {
+                        "title": f"Internal Record: {row.get('case_title', 'Unnamed')[:50]}...",
+                        "category": "internal_legal",
+                        "priority": str(row.get("priority", "Unknown")),
+                        "source": "Custom Labeled Dataset",
+                        "source_type": "legal_case",
+                    }
+                    
+                    chunk_ids = embed_and_upsert(
+                        text=text,
+                        metadata=metadata,
+                        source_type="legal_case",
+                    )
+                    total_chunks += len(chunk_ids)
+                
+                except Exception as e:
+                    logger.warning(f"⚠️ Error seeding row: {e}")
+                    continue
+                    
+            logger.info(f"✅ Custom Training Data: {total_chunks} chunks seeded")
+            return total_chunks
+
+        except Exception as e:
+            logger.error(f"❌ Error seeding custom data: {e}")
             return 0
 
     @staticmethod

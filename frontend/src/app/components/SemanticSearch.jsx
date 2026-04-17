@@ -61,9 +61,21 @@ export default function SemanticSearch() {
                             <Zap size={120} />
                         </div>
 
-                        <div className="flex items-center gap-2 mb-6">
-                            <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse"></span>
-                            <h3 className="text-xs font-bold uppercase tracking-widest text-blue-500">AI compliance Verdict</h3>
+                        <div className="flex items-center justify-between mb-6">
+                            <div className="flex items-center gap-2">
+                                <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse"></span>
+                                <h3 className="text-xs font-bold uppercase tracking-widest text-blue-500">AI compliance Verdict</h3>
+                            </div>
+                            {result.local_ml_risk && (
+                                <div className="flex items-center gap-2 bg-blue-50 px-3 py-1 rounded-full border border-blue-100 shadow-sm animate-in zoom-in duration-700">
+                                    <span className="text-[10px] font-bold uppercase text-blue-400">Local ML Anchor:</span>
+                                    <span className={`text-[10px] font-black uppercase ${result.local_ml_risk === 'High' ? 'text-red-500' :
+                                            result.local_ml_risk === 'Medium' ? 'text-orange-500' : 'text-green-500'
+                                        }`}>
+                                        {result.local_ml_risk} Priority
+                                    </span>
+                                </div>
+                            )}
                         </div>
 
                         <div className="markdown-content text-gray-800 text-lg">

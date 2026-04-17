@@ -81,6 +81,13 @@ qdrant_storage/
 postgres_data/
 redis_data/
 
+# Data & ML artifacts
+backend/data/training/
+backend/data/storage/
+backend/ml/*.joblib
+backend/ml/*.jsonl
+backend/ml/*.pkl
+
 # Temporary files
 .tmp/
 tmp/
