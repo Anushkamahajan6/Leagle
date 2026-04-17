@@ -24,7 +24,7 @@ export const checkPolicyCompliance = (id) =>
 
 // Impact
 export const analyzeImpact = (regulationId, policyId) =>
-    api.post('/impact/analyze', { regulation_id: regulationId, policy_id: policyId })
+    api.post(`/impact/analyze?regulation_id=${regulationId}&policy_id=${policyId}`)
 export const getHeatmap = () => api.get('/impact/heatmap')
 export const getImpactDetails = (dept, cat) => api.get(`/impact/details?dept=${dept}&cat=${cat}`)
 export const getRegulationIntel = (id) => api.get(`/regulations/${id}/intel`)

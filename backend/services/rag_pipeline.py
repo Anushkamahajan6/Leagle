@@ -9,27 +9,53 @@ from core.config import settings
 
 logger = logging.getLogger(__name__)
 
+from langchain_nvidia_ai_endpoints import ChatNVIDIA
 from core.llm_factory import LLMFactory
+from core.config import settings
 
-def _get_llm(temperature=0.1, max_tokens=2048):
-    """Instantiate LLM with automatic fallback via LLMFactory."""
+def _get_llm(temperature: float = 0.0, max_tokens: int = 512):
+    """
+    Returns the LLM for impact analysis.
+    Prioritizes NVIDIA NIM if API key is available.
+    """
+    if settings.nvidia_api_key:
+        return ChatNVIDIA(
+            model="meta/llama-3.3-70b-instruct",
+            api_key=settings.nvidia_api_key,
+            temperature=temperature,
+            max_tokens=max_tokens,
+        )
     return LLMFactory.get_llm(temperature=temperature, max_tokens=max_tokens)
 
 IMPACT_ANALYSIS_PROMPT = ChatPromptTemplate.from_messages([
-    ("system", """You are a senior compliance officer with expertise in regulatory analysis.
-Analyze whether a new regulation impacts an existing company policy.
-Always respond with a valid JSON object — no markdown, no preamble, just JSON.
+    ("system", """You are a senior compliance officer with expertise in cross-regulatory mapping.
+Analyze the impact of a new regulation on an existing company policy by focusing on **CONTROL DOMAINS**.
+
+CONTROL DOMAINS include:
+- Access Control & Authentication
+- Data Retention & Erasure
+- Reporting & Breach Notification
+- Audit Logging & Transparency
+- Third-party/Vendor Risk
+- Financial Disclosures & Evidence
+
+ANALYSIS RULES:
+1. **Domain Overlap**: Even if the regulation and policy have different high-level titles (e.g., "Nuclear Safeguards" vs "IT Access Policy"), if both mention **Access Control**, they ARE RELATED.
+2. **Gap Detection**: If the regulation specifies a TECHNICAL DETAIL (e.g., "MFA mandatory", "Logs kept for 7 years", "24-hour reporting") and the policy is SILENT or LESS STRINGENT, mark this as **HIGH** or **MEDIUM** impact.
+3. **Be Specific**: In `compliance_gaps`, quote the specific requirement from the regulation that is missing in the policy.
+4. **Detailed Reasoning**: Provide a 400-500 character explanation of the friction between the two documents.
+5. **JSON Response only**.
 
 Response format:
 {{
   "impact_level": "HIGH", "MEDIUM" or "LOW",
-  "affected_clauses": ["list of specific policy sections affected"],
-  "compliance_gaps": ["specific gaps found in the policy"],
+  "affected_clauses": ["Policy sections that must change or 'None-NewRequirement'"],
+  "compliance_gaps": ["Detailed quotes of what the regulation requires that the policy lacks"],
   "recommended_actions": [
-    {{"step": 1, "action": "...", "deadline_days": 30, "owner": "Legal"}}
+    {{"step": 1, "action": "Update clause X to include...", "deadline_days": 30, "owner": "CISO/Compliance"}}
   ],
   "compliance_deadline": "YYYY-MM-DD or null if not specified",
-  "reasoning": "2-3 sentence explanation of the impact assessment"
+  "reasoning": "A deep-dive technical explanation of the compliance friction."
 }}"""),
     ("human", """RELEVANT REGULATORY CONTEXT (retrieved from knowledge base):
 {context}
@@ -85,8 +111,8 @@ async def analyze_impact(
     """
     similar_chunks = semantic_search(
         query_text=regulation_text,
-        top_k=5,
-        score_threshold=0.3,
+        top_k=10, # More context
+        score_threshold=0.15, # Even more sensitive
     )
 
     context = "\n\n---\n\n".join([
@@ -95,16 +121,16 @@ async def analyze_impact(
     ])
 
     if not context:
-        context = "No additional context available in the knowledge base."
+        context = "Analyze the primary texts provided below."
 
     try:
         try:
-            llm = _get_llm()
+            llm = _get_llm(temperature=0.1, max_tokens=1000) # Increased capacity for detail
             chain = IMPACT_ANALYSIS_PROMPT | llm | StrOutputParser()
             raw_response = await chain.ainvoke({
                 "context": context,
-                "regulation_text": f"{regulation_title}\n\n{regulation_text}"[:3000],
-                "policy_text": f"{policy_title}\n\n{policy_text}"[:2000],
+                "regulation_text": f"{regulation_title}\n\n{regulation_text}"[:5000], # Increased
+                "policy_text": f"{policy_title}\n\n{policy_text}"[:6000], # Increased
             })
         except Exception as e:
             if "429" in str(e) or "quota" in str(e).lower() or "resource_exhausted" in str(e).lower():
