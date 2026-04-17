@@ -8,12 +8,21 @@ from core.config import settings
 
 logger = logging.getLogger(__name__)
 
-def _get_llm() -> ChatGoogleGenerativeAI:
-    """Instantiate Gemini LLM. gemini-2.5-flash is current default."""
+def _get_llm():
+    """Instantiate LLM (Gemini or Groq) from settings."""
+    if settings.llm_provider == "groq":
+        from langchain_groq import ChatGroq
+        return ChatGroq(
+            model_name="llama-3.3-70b-versatile",
+            groq_api_key=settings.groq_api_key,
+            temperature=0.1,
+        )
+    
+    # Default to Gemini
     return ChatGoogleGenerativeAI(
-        model="gemini-2.5-flash",
+        model=settings.llm_model,
         google_api_key=settings.gemini_api_key,
-        temperature=0.1,    # low temperature for factual compliance analysis
+        temperature=0.1,
         max_tokens=2048,
     )
 
@@ -46,13 +55,31 @@ Analyze the impact and respond with JSON only."""),
 ])
 
 SEMANTIC_SEARCH_PROMPT = ChatPromptTemplate.from_messages([
-    ("system", """You are a compliance expert. Answer questions about regulations
-using only the provided context. Be specific and cite regulation names when possible.
-If the context doesn't contain enough information, say so clearly."""),
-    ("human", """CONTEXT FROM REGULATORY DATABASE:
-{context}
+    ("system", """
+    You are a Senior AI Compliance Officer and Legal Strategist. Your goal is to analyze the user's query against our Regulatory Database and provide a data-driven risk assessment.
 
-QUESTION: {question}
+    CONTEXT FROM DATABASE (Regulations & Legal Precedents):
+    {context}
+
+    USER QUERY:
+    {question}
+
+    INSTRUCTIONS:
+    1. **Direct Answer**: Provide a concise answer based on the regulations found.
+    2. **Precedent & Case Law**: Look for rows marked as [Legal Case] or [GDPR Case Study]. 
+       - If a similar violation exists, cite it using this format: `> **Precedent**: Title of Case` (DO NOT wrap the title in extra brackets like `([title])`).
+       - Explain the penalty or outcome.
+    3. **Legal Citations**: When referencing a specific law, use: `(Ref: Law Name)`.
+    4. **Actionable Remediation**: Suggest 1-3 specific steps.
+    5. **Risk Score**: Estimate (Low, Medium, High).
+
+    FORMATTING RULES:
+    - Use `###` for headers.
+    - **IMPORTANT**: ALWAYS put two empty lines (double newline) before every `###` header.
+    - Use bold text for key terms.
+    - Format response in professional Markdown.
+    """),
+    ("human", """QUESTION: {question}
 
 Answer based on the context above:"""),
 ])
@@ -74,7 +101,7 @@ async def analyze_impact(
     )
 
     context = "\n\n---\n\n".join([
-        f"[{chunk.get('title', 'Unknown')} | Score: {chunk['score']}]\n{chunk['text']}"
+        f"Source: {chunk.get('title', 'Unknown')} (Category: {chunk.get('category', 'n/a')})\n{chunk['text']}"
         for chunk in similar_chunks
     ])
 
@@ -119,7 +146,7 @@ async def rag_question_answer(question: str) -> dict:
     """
     chunks = semantic_search(query_text=question, top_k=7, score_threshold=0.25)
     context = "\n\n---\n\n".join([
-        f"[{c.get('title', '')} | {c.get('category', '')}]\n{c['text']}"
+        f"Source: {c.get('title', 'Unknown')} (Category: {c.get('category', 'n/a')})\n{c['text']}"
         for c in chunks
     ])
 

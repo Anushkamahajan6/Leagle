@@ -29,17 +29,10 @@ class DatasetLoader:
         dataset_name: str,
         split: str = "train",
         max_samples: int | None = None,
+        streaming: bool = True,
     ) -> List[Dict[str, Any]]:
         """
-        Load a dataset from HuggingFace Hub.
-        
-        Args:
-            dataset_name: HuggingFace dataset identifier (e.g., "PleIAs/SEC")
-            split: Dataset split ("train", "test", "validation")
-            max_samples: Maximum number of samples to load
-        
-        Returns:
-            List of dataset samples
+        Load a dataset from HuggingFace Hub using streaming for efficiency.
         """
         try:
             from datasets import load_dataset
@@ -48,14 +41,26 @@ class DatasetLoader:
             return []
         
         try:
-            logger.info(f"Loading {dataset_name} from HuggingFace...")
-            if max_samples:
-                dataset = load_dataset(dataset_name, split=f"{split}[:{max_samples}]", trust_remote_code=True)
-            else:
-                dataset = load_dataset(dataset_name, split=split, trust_remote_code=True)
+            logger.info(f"Loading {dataset_name} from HuggingFace (streaming={streaming})...")
+            dataset = load_dataset(dataset_name, split=split, streaming=streaming, trust_remote_code=True)
             
-            # Convert to list of dicts
-            samples = [dict(item) for item in dataset]
+            samples = []
+            if streaming:
+                # Iterate and take max_samples
+                it = iter(dataset)
+                for _ in range(max_samples or 1000): # Default limit for safety if streaming
+                    try:
+                        samples.append(dict(next(it)))
+                        if max_samples and len(samples) >= max_samples:
+                            break
+                    except StopIteration:
+                        break
+            else:
+                # Non-streaming (downloads whole split)
+                if max_samples:
+                    dataset = dataset.select(range(min(max_samples, len(dataset))))
+                samples = [dict(item) for item in dataset]
+                
             logger.info(f"✅ Loaded {len(samples)} samples from {dataset_name}")
             return samples
         except Exception as e:
@@ -141,24 +146,31 @@ class SECDatasetSeeder:
     """Seed Qdrant with SEC Form 10-K data as company compliance benchmark"""
     
     @staticmethod
-    def seed_sec_data(
+    async def seed_sec_data(
         max_companies: int = 100,
-        max_documents_per_company: int = 3,
+        max_documents_per_company: int = 1,
+        summarize: bool = True,
     ) -> int:
         """
         Load and seed SEC 10-K forms to Qdrant.
         
-        These serve as real-world examples of how companies interpret
-        and implement compliance policies.
+        Uses summarization and larger chunks to ensure scalability.
         
         Args:
             max_companies: Max companies to include
             max_documents_per_company: Max 10-K docs per company
+            summarize: Whether to summarize long forms before embedding
         
         Returns:
             Number of chunks loaded
         """
-        logger.info("🔄 Seeding SEC Dataset...")
+        from services.summarization_service import SummarizationService
+        import os
+        
+        STORAGE_DIR = "backend/data/storage/sec"
+        os.makedirs(STORAGE_DIR, exist_ok=True)
+        
+        logger.info(f"🔄 Seeding SEC Dataset (summarize={summarize})...")
         
         try:
             # Load SEC dataset
@@ -179,6 +191,24 @@ class SECDatasetSeeder:
                     
                     if not text or len(text) < 100:
                         continue
+
+                    # Hybrid Storage: Save full text to disk
+                    company_slug = metadata.get("company", "unknown").replace(" ", "_").lower()
+                    file_name = f"{company_slug}_{metadata.get('filing_date', 'unknown')}.txt"
+                    file_path = os.path.join(STORAGE_DIR, file_name)
+                    
+                    with open(file_path, "w") as f:
+                        f.write(text)
+                    
+                    metadata["storage_path"] = file_path
+                    
+                    # Option 3: Summarize before embedding
+                    if summarize:
+                        text = await SummarizationService.summarize_document(
+                            text=text, 
+                            title=metadata.get("company", ""),
+                            source="SEC 10-K"
+                        )
                     
                     # Upsert to Qdrant
                     chunk_ids = embed_and_upsert(
@@ -195,7 +225,7 @@ class SECDatasetSeeder:
                     logger.warning(f"  ⚠️  Error processing SEC form: {e}")
                     continue
             
-            logger.info(f"✅ SEC Dataset: {total_chunks} chunks seeded")
+            logger.info(f"✅ SEC Dataset: {total_chunks} chunks seeded (Hybrid Storage active)")
             return total_chunks
         
         except Exception as e:
@@ -345,6 +375,64 @@ class RegulatoryDatasetSeeder:
         ],
     }
     
+    @staticmethod
+    async def seed_gdpr_cases(max_samples: int = 500) -> int:
+        """
+        Seed GDPR case studies from Johny201/gdpr-articles.
+        This includes real-world violations and cited articles.
+        """
+        logger.info(f"🔄 Seeding GDPR Case Studies (max={max_samples})...")
+        
+        try:
+            samples = DatasetLoader.load_from_huggingface(
+                "Johny201/gdpr-articles",
+                split="train",
+                max_samples=max_samples,
+            )
+            
+            if not samples:
+                logger.warning("⚠️ No GDPR case samples found")
+                return 0
+            
+            total_chunks = 0
+            for sample in samples:
+                try:
+                    # The dataset has 'summary' and Art_X flags
+                    text = sample.get("summary", "")
+                    if not text:
+                        continue
+                        
+                    # Extract cited articles
+                    citations = [art for art in sample.keys() if art.startswith("Art_") and sample[art] == 1]
+                    
+                    metadata = {
+                        "title": f"GDPR Case Study - {citations[0] if citations else 'General'}",
+                        "category": "data_privacy",
+                        "jurisdiction": "EU",
+                        "source": "GDPR Cases",
+                        "citations": citations,
+                        "source_type": "legal_case",
+                    }
+                    
+                    # Upsert to Qdrant
+                    chunk_ids = embed_and_upsert(
+                        text=text,
+                        metadata=metadata,
+                        source_type="legal_case",
+                    )
+                    total_chunks += len(chunk_ids)
+                
+                except Exception as e:
+                    logger.warning(f"⚠️ Error seeding GDPR case: {e}")
+                    continue
+                    
+            logger.info(f"✅ GDPR Case Studies: {total_chunks} chunks seeded")
+            return total_chunks
+            
+        except Exception as e:
+            logger.error(f"❌ Error seeding GDPR cases: {e}")
+            return 0
+
     @staticmethod
     def seed_regulatory_data() -> int:
         """

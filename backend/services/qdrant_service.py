@@ -95,9 +95,9 @@ def ensure_collection_exists() -> None:
         raise
 
 
-def chunk_text(text: str, max_tokens: int = 400) -> List[str]:
+def chunk_text(text: str, max_tokens: int = 1500) -> List[str]:
     """
-    Split text into chunks (~400 tokens each) for embedding.
+    Split text into larger chunks (~1500 tokens each) for scalability.
     Simple approach: split by sentences, accumulate until max_tokens reached.
     """
     if not text:
@@ -233,6 +233,7 @@ def semantic_search(
             "category": hit.payload.get("category", ""),
             "regulation_id": hit.payload.get("regulation_id", ""),
             "source_type": hit.payload.get("source_type", ""),
+            "storage_path": hit.payload.get("storage_path"),
         }
         for hit in results
     ]

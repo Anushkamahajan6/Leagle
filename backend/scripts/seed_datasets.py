@@ -40,7 +40,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-def seed_all_datasets(
+async def seed_all_datasets(
     seed_sec: bool = True,
     seed_regulatory: bool = True,
     prepare_ml: bool = True,
@@ -70,11 +70,12 @@ def seed_all_datasets(
     # Seed SEC Dataset
     if seed_sec:
         print("[2/4] Seeding SEC Form 10-K Dataset...")
-        print("     (Corporate compliance benchmark - real company policies)")
+        print("     (Corporate compliance benchmark - Hybrid Storage Active)")
         try:
-            sec_chunks = SECDatasetSeeder.seed_sec_data(
+            sec_chunks = await SECDatasetSeeder.seed_sec_data(
                 max_companies=sec_max_companies,
-                max_documents_per_company=3,
+                max_documents_per_company=1,
+                summarize=True,
             )
             results["sec_chunks"] = sec_chunks
         except Exception as e:
@@ -90,7 +91,8 @@ def seed_all_datasets(
         try:
             reg_chunks = RegulatoryDatasetSeeder.seed_regulatory_data()
             lex_chunks = RegulatoryDatasetSeeder.seed_from_lexglue()
-            results["regulatory_chunks"] = reg_chunks + lex_chunks
+            gdpr_chunks = await RegulatoryDatasetSeeder.seed_gdpr_cases(max_samples=500)
+            results["regulatory_chunks"] = reg_chunks + lex_chunks + gdpr_chunks
         except Exception as e:
             logger.error(f"Error seeding regulatory data: {e}")
             results["regulatory_chunks"] = 0
@@ -193,12 +195,12 @@ def main():
         seed_sec = seed_regulatory = prepare_ml = True
     
     # Run seeding
-    results = seed_all_datasets(
+    results = asyncio.run(seed_all_datasets(
         seed_sec=seed_sec,
         seed_regulatory=seed_regulatory,
         prepare_ml=prepare_ml,
         sec_max_companies=args.sec_companies,
-    )
+    ))
     
     # Exit with appropriate code
     if results.get("sec_chunks", 0) + results.get("regulatory_chunks", 0) + results.get("ml_training_samples", 0) > 0:
