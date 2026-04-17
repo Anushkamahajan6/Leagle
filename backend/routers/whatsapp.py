@@ -8,6 +8,7 @@ import logging
 from services.pdf_service import extract_text_from_pdf
 from services.chunk_service import split_text
 from services.embedding_service import generate_embeddings
+from services.intel_service import RegulationIntelligenceService
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -117,16 +118,41 @@ async def whatsapp_webhook(request: Request):
                 status_code=200
             )
 
-        # 9️⃣ Success response
-        logger.info(f"🎉 Pipeline complete for {from_number}")
-        return Response(
-            content=f"""<Response><Message>✅ PDF processed!
-📄 Pages: {extraction_result['num_pages']}
-✂️ Chunks: {len(chunks)}
-🧠 Embeddings: {num_embeddings}</Message></Response>""",
-            media_type="application/xml",
-            status_code=200
-        )
+        # 9️⃣ Generate Intelligence Report
+        try:
+            logger.info(f"🧠 Generating Intelligence Report...")
+            # Use snippet for analysis to stay within context limits
+            analysis_snippet = extracted_text[:10000] 
+            intel = await RegulationIntelligenceService.get_regulation_intel(
+                title="WhatsApp Ingested Policy",
+                text=analysis_snippet
+            )
+            
+            # Format the report for WhatsApp
+            impact_areas_str = ", ".join(intel.get("impact_areas", ["General"]))
+            report_msg = (
+                f"📊 *POLICY INTELLIGENCE REPORT*\n\n"
+                f"*Summary:* {intel.get('explanation')}\n\n"
+                f"*Neural Risk Score:* {intel.get('risk_score')}/10\n\n"
+                f"*Legal Comparison:* {intel.get('comparison')}\n\n"
+                f"*Impacted Verticals:* {impact_areas_str}\n\n"
+                f"✅ _Policy Indexed & Secured_"
+            )
+            
+            logger.info(f"🎉 Pipeline complete for {from_number}")
+            return Response(
+                content=f"""<Response><Message>{report_msg}</Message></Response>""",
+                media_type="application/xml",
+                status_code=200
+            )
+
+        except Exception as e:
+            logger.error(f"❌ Intelligence Report failed: {str(e)}")
+            return Response(
+                content=f"""<Response><Message>✅ PDF indexed, but report generation failed: {str(e)}</Message></Response>""",
+                media_type="application/xml",
+                status_code=200
+            )
 
     except Exception as e:
         logger.error(f"❌ CRITICAL ERROR: {str(e)}", exc_info=True)

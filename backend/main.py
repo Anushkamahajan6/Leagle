@@ -66,3 +66,7 @@ app.include_router(whatsapp.router, prefix="/api/whatsapp", tags=["whatsapp"])
 @app.get("/health")
 async def health_check():
     return {"status": "ok", "version": "1.0.0"}
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
