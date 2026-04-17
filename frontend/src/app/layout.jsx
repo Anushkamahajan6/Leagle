@@ -1,4 +1,3 @@
-import WebSocketInitializer from './components/WebSocketInitializer'
 import QueryProvider from './components/QueryProvider'
 import Navigation from './components/Navigation'
 import './globals.css'
@@ -18,7 +17,7 @@ export default function RootLayout({ children }) {
             </head>
             <body className="antialiased min-h-screen selection:bg-leagle-accent/30 cm-shell-bg">
                 <QueryProvider>
-                    <WebSocketInitializer />
+                    {/* ✅ Socket.IO disabled - removed WebSocketInitializer */}
                     <Navigation />
                     <div className="pl-[76px] min-h-screen flex flex-col">
                         <header className="cm-shell-header sticky top-0 z-20 px-7 flex items-center justify-between">
