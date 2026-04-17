@@ -72,10 +72,10 @@ export default function RiskHeatmap() {
 
     const getScoreStyle = (score) => {
         switch (score) {
-            case 3: return 'bg-red-500/[0.05] text-red-500 border-red-500/20 shadow-[0_0_10px_rgba(239,68,68,0.05)]'
-            case 2: return 'bg-amber-500/[0.05] text-amber-500 border-amber-500/20'
-            case 1: return 'bg-emerald-500/[0.05] text-emerald-400 border-emerald-500/20'
-            default: return 'bg-transparent text-gray-800 border-white/2 opacity-10 cursor-default shadow-none'
+            case 3: return 'bg-red-500/20 text-red-500 border-red-500/30'
+            case 2: return 'bg-amber-500/20 text-amber-500 border-amber-500/30'
+            case 1: return 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+            default: return 'bg-white/2 text-gray-700 border-white/5 opacity-30 cursor-default'
         }
     }
 
@@ -87,23 +87,23 @@ export default function RiskHeatmap() {
                         <BarChart3 className="text-leagle-accent" size={18} />
                         <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-leagle-accent">Risk Oversight</h2>
                     </div>
-                    <h1 className="text-4xl font-serif text-white tracking-tight italic underline decoration-leagle-accent/20 underline-offset-8">Risk Exposure Matrix</h1>
+                    <h1 className="text-4xl font-black text-white tracking-tight">Risk Exposure Matrix</h1>
                 </div>
 
-                <div className="glass-card px-8 py-4 flex items-center gap-6 border-leagle-accent/10 rounded-sm">
+                <div className="glass-card px-8 py-4 flex items-center gap-6 border-white/10">
                     <div className="text-right">
-                        <p className="text-[10px] uppercase font-black text-gray-500 tracking-widest leading-none mb-2">Signals Detected</p>
-                        <p className="text-2xl font-serif italic text-white leading-none">{data.total_open_impacts}</p>
+                        <p className="text-[10px] uppercase font-black text-gray-500 tracking-widest leading-none mb-2">Active Signals</p>
+                        <p className="text-2xl font-black text-white leading-none">{data.total_open_impacts}</p>
                     </div>
                     <div className="h-10 w-px bg-white/5"></div>
-                    <div className="w-10 h-10 bg-leagle-accent/5 rounded-sm flex items-center justify-center text-leagle-accent border border-leagle-accent/20">
+                    <div className="w-10 h-10 bg-leagle-accent/10 rounded-xl flex items-center justify-center text-leagle-accent border border-leagle-accent/20">
                         <Activity className="animate-pulse" size={20} />
                     </div>
                 </div>
             </div>
 
-            <div className="glass-card p-6 md:p-12 border-white/5 relative overflow-hidden rounded-sm bg-white/1">
-                <div className="absolute top-0 right-0 w-96 h-96 bg-leagle-accent/2 blur-3xl rounded-none" />
+            <div className="glass-card p-6 md:p-12 border-white/5 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-96 h-96 bg-leagle-accent/5 blur-3xl rounded-full" />
 
                 <div className="overflow-x-auto custom-scrollbar">
                     <table className="w-full border-separate border-spacing-4">
@@ -122,8 +122,8 @@ export default function RiskHeatmap() {
                                 <tr key={dept}>
                                     <td className="p-4">
                                         <div className="flex items-center gap-4">
-                                            <div className="h-8 w-1 bg-leagle-accent opacity-50"></div>
-                                            <span className="font-serif italic text-white text-lg tracking-tight underline decoration-white/5 underline-offset-4">{dept}</span>
+                                            <div className="h-10 w-1.5 bg-gradient-to-b from-leagle-accent to-blue-600 rounded-full shadow-[0_0_10px_#38bdf8]"></div>
+                                            <span className="font-black text-white text-lg tracking-tight">{dept}</span>
                                         </div>
                                     </td>
                                     {categories.map(cat => {
@@ -133,9 +133,9 @@ export default function RiskHeatmap() {
                                                 <button
                                                     onClick={() => score > 0 && setSelectedCell({ dept, cat, score })}
                                                     className={`
-                                                        w-full h-16 rounded-sm border transition-all duration-300 flex flex-col items-center justify-center group relative overflow-hidden
+                                                        w-full h-20 rounded-3xl border transition-all duration-500 flex flex-col items-center justify-center group relative overflow-hidden
                                                         ${getScoreStyle(score)}
-                                                        ${score > 0 ? 'hover:bg-white/5 active:scale-95' : ''}
+                                                        ${score > 0 ? 'hover:scale-[1.05] hover:shadow-[0_0_30px_rgba(255,255,255,0.05)] active:scale-95' : ''}
                                                     `}
                                                 >
                                                     {score > 0 && (
@@ -143,12 +143,12 @@ export default function RiskHeatmap() {
                                                             <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                                                 <ArrowUpRight size={12} />
                                                             </div>
-                                                            <span className="text-[10px] font-black tracking-widest uppercase mb-1 font-serif italic">
-                                                                {score === 3 ? 'Critical' : score === 2 ? 'Warning' : 'Stable'}
+                                                            <span className="text-[10px] font-black tracking-widest uppercase opacity-80 mb-1">
+                                                                {score === 3 ? 'CRITICAL' : score === 2 ? 'WARNING' : 'STABLE'}
                                                             </span>
-                                                            <div className="flex gap-1.5">
+                                                            <div className="flex gap-1">
                                                                 {[...Array(score)].map((_, i) => (
-                                                                    <div key={i} className="w-1.5 h-3 bg-current" />
+                                                                    <div key={i} className="w-1.5 h-1.5 rounded-full bg-current" />
                                                                 ))}
                                                             </div>
                                                         </>
@@ -164,19 +164,19 @@ export default function RiskHeatmap() {
                 </div>
 
                 {/* Legend */}
-                <div className="mt-16 flex flex-wrap gap-10 items-center px-8 py-6 bg-white/2 rounded-sm border border-white/5">
+                <div className="mt-16 flex flex-wrap gap-10 items-center px-6 py-8 bg-white/2 rounded-[2rem] border border-white/5">
                     {[
-                        { label: "Critical", color: "bg-red-500/40" },
-                        { label: "Muted Warning", color: "bg-amber-500/40" },
-                        { label: "Stable / Verified", color: "bg-emerald-500/20" }
+                        { label: "High Risk", color: "bg-red-500 shadow-red-500/40" },
+                        { label: "Moderate", color: "bg-amber-500 shadow-amber-500/40" },
+                        { label: "Stable", color: "bg-emerald-500 shadow-emerald-500/40" }
                     ].map((item, i) => (
                         <div key={i} className="flex items-center gap-3">
-                            <div className={`w-3 h-3 rounded-none ${item.color} border border-white/5`} />
-                            <span className="text-[9px] font-black text-gray-600 uppercase tracking-[0.2em]">{item.label}</span>
+                            <div className={`w-4 h-4 rounded-md shadow-lg ${item.color}`} />
+                            <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">{item.label}</span>
                         </div>
                     ))}
-                    <div className="ml-auto text-[9px] font-serif italic text-leagle-accent uppercase tracking-widest">
-                        Neural Scoring Subsystem Active
+                    <div className="ml-auto text-[10px] font-black text-leagle-accent uppercase tracking-widest border-b border-leagle-accent/20 pb-1">
+                        Scoring Model Active
                     </div>
                 </div>
             </div>
@@ -188,16 +188,16 @@ export default function RiskHeatmap() {
                         <div className="p-10 border-b border-white/5 bg-white/5 flex justify-between items-start">
                             <div className="space-y-4">
                                 <div className="flex items-center gap-3">
-                                    <div className="p-2 bg-leagle-accent/5 rounded-sm text-leagle-accent border border-leagle-accent/20">
+                                    <div className="p-2 bg-leagle-accent/10 rounded-xl text-leagle-accent">
                                         <Target size={20} />
                                     </div>
-                                    <h3 className="text-xs font-black uppercase tracking-[0.3em] text-leagle-accent italic">Segment Analysis</h3>
+                                    <h3 className="text-xs font-black uppercase tracking-[0.3em] text-leagle-accent">Impact Detail</h3>
                                 </div>
-                                <h4 className="text-3xl font-serif italic text-white tracking-tight leading-tight underline decoration-leagle-accent/30 underline-offset-8">
-                                    {selectedCell.dept} Unit
+                                <h4 className="text-3xl font-black text-white tracking-tight leading-tight">
+                                    {selectedCell.dept} Review
                                 </h4>
-                                <p className="text-gray-500 font-black uppercase text-[9px] tracking-[0.2em] mt-4">
-                                    Jurisdictional Segment: <span className="text-leagle-accent">{selectedCell.cat?.replace(/_/g, ' ')}</span>
+                                <p className="text-gray-500 font-bold uppercase text-[10px] tracking-widest">
+                                    Segment: <span className="text-white">{selectedCell.cat?.replace(/_/g, ' ')}</span>
                                 </p>
                             </div>
                             <button
@@ -217,16 +217,16 @@ export default function RiskHeatmap() {
                             ) : details.length > 0 ? (
                                 <div className="space-y-6">
                                     {details.map((m, idx) => (
-                                        <div key={idx} className="p-8 bg-white/1 rounded-sm border border-white/5 space-y-6 group hover:bg-white/2 transition-all duration-300">
+                                        <div key={idx} className="p-8 bg-white/2 rounded-[2.5rem] border border-white/5 space-y-6 group hover:bg-white/[0.04] transition-all duration-500">
                                             <div className="flex justify-between items-start">
                                                 <div className="space-y-1">
-                                                    <p className="text-[9px] font-black text-leagle-accent uppercase tracking-widest italic">Impact Record #{idx + 1}</p>
-                                                    <h4 className="text-xl font-serif text-white group-hover:text-leagle-accent transition-colors leading-tight italic">{m.regulation_title}</h4>
+                                                    <p className="text-[9px] font-black text-leagle-accent uppercase tracking-widest">Impact Record #{idx + 1}</p>
+                                                    <h4 className="text-xl font-black text-white group-hover:text-leagle-accent transition-colors leading-tight">{m.regulation_title}</h4>
                                                 </div>
-                                                <span className={`px-4 py-1 rounded-sm text-[9px] font-black border uppercase tracking-widest ${m.impact_level === 'HIGH' ? 'bg-red-500/10 text-red-500 border-red-500/20' :
-                                                    'bg-amber-500/10 text-amber-500 border-amber-500/20'
+                                                <span className={`px-4 py-1 rounded-xl text-[10px] font-black border uppercase tracking-widest ${m.impact_level === 'HIGH' ? 'bg-red-500/10 text-red-400 border-red-500/20 shadow-[0_0_15px_rgba(239,68,68,0.1)]' :
+                                                        'bg-amber-500/10 text-amber-400 border-amber-500/20 shadow-[0_0_15px_rgba(245,158,11,0.1)]'
                                                     }`}>
-                                                    {m.impact_level} SEVERITY
+                                                    {m.impact_level} IMPACT
                                                 </span>
                                             </div>
 

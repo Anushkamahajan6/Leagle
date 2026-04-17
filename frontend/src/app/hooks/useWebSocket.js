@@ -3,23 +3,11 @@
 import { useEffect } from 'react'
 import { io } from 'socket.io-client'
 import { useAppStore } from '../store/appStore'
-import { getAlerts } from '../api/client'
 
 export function useWebSocket() {
-    const { addAlerts, setAlerts } = useAppStore()
+    const addAlerts = useAppStore((s) => s.addAlerts)
 
     useEffect(() => {
-        // Initial Fetch
-        async function fetchInitial() {
-            try {
-                const res = await getAlerts()
-                setAlerts(res.data || [])
-            } catch (err) {
-                console.error('Failed to seed alerts:', err)
-            }
-        }
-        fetchInitial()
-
         // Connect to Socket.io gateway
         const socket = io('http://localhost:8000', {
             path: '/ws/socket.io'
@@ -34,5 +22,5 @@ export function useWebSocket() {
         socket.on('disconnect', () => console.log('❌ Disconnected from Feed'))
 
         return () => socket.disconnect()
-    }, [addAlerts, setAlerts])
+    }, [addAlerts])
 }

@@ -84,12 +84,12 @@ export default function Ingest() {
           <div className="absolute inset-0 bg-leagle-accent/5 opacity-0 group-hover:opacity-100 transition-opacity blur-3xl rounded-full scale-150" />
 
           <div className="relative z-10">
-            <div className="w-16 h-16 bg-white/2 rounded-sm flex items-center justify-center text-3xl mx-auto border border-white/5 mb-6 group-hover:border-leagle-accent/30 transition-all">
+            <div className="w-24 h-24 bg-white/5 rounded-3xl flex items-center justify-center text-4xl mx-auto border border-white/10 mb-6 group-hover:scale-110 transition-transform">
               {loading ? '⏳' : '📥'}
             </div>
             <div>
-              <h3 className="text-3xl font-serif text-white tracking-tight italic">Diagnostic Ingestion</h3>
-              <p className="text-gray-500 mt-2 font-medium max-w-sm mx-auto text-[10px] uppercase tracking-widest">Aggregate & Indexed Jurisdictional Artifacts</p>
+              <h3 className="text-3xl font-black text-white tracking-tight">Document Ingestion</h3>
+              <p className="text-gray-400 mt-2 font-medium max-w-sm mx-auto text-sm">Upload a policy or regulation document to extract text and run compliance analysis.</p>
             </div>
           </div>
 
@@ -104,10 +104,10 @@ export default function Ingest() {
             />
             <label
               htmlFor="pdf-upload"
-              className={`bg-leagle-accent text-black font-black text-[10px] tracking-[0.2em] uppercase px-10 py-4 rounded-sm cursor-pointer inline-flex items-center gap-3 hover:bg-white transition-all shadow-xl ${loading ? 'opacity-50 pointer-events-none' : ''}`}
+              className={`btn-premium cursor-pointer inline-flex items-center gap-3 ${loading ? 'opacity-50 pointer-events-none' : ''}`}
             >
-              <Upload size={18} />
-              {file ? file.name : 'Select PDF Portfolio'}
+              <Upload size={20} />
+              {file ? file.name : 'Select PDF Document'}
             </label>
 
             {file && !loading && (
@@ -133,14 +133,14 @@ export default function Ingest() {
       ) : (
         <div className="space-y-10">
           {/* SUCCESS HEADER */}
-          <div className="glass-card p-8 bg-white/2 border-leagle-accent/10 flex flex-col md:flex-row md:items-center justify-between gap-6 rounded-sm">
+          <div className="glass-card p-8 bg-gradient-to-r from-leagle-accent/5 to-transparent border-leagle-accent/20 flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div className="flex items-center gap-6">
-              <div className="w-16 h-16 bg-leagle-accent/5 rounded-sm border border-leagle-accent/20 flex items-center justify-center text-leagle-accent">
+              <div className="w-16 h-16 bg-leagle-accent/20 rounded-2xl flex items-center justify-center text-leagle-accent shadow-[0_0_30px_rgba(56,189,248,0.2)]">
                 <CheckCircle2 size={30} />
               </div>
               <div>
-                <h3 className="text-2xl font-serif text-white italic italic">Ingestion Complete</h3>
-                <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest">Record ID: <span className="font-mono">{result.document_id}</span></p>
+                <h3 className="text-2xl font-black text-white">Ingestion Complete</h3>
+                <p className="text-sm text-gray-400 font-medium">Document ID: <span className="font-mono text-xs">{result.document_id}</span></p>
               </div>
             </div>
 
@@ -173,12 +173,12 @@ export default function Ingest() {
               { label: "Embeddings", value: result.pipeline_stats.num_embeddings, icon: <ArrowRight size={14} /> },
               { label: "Strategy", value: result.pipeline_stats.chunking_strategy, icon: <Info size={14} /> },
             ].map((stat, i) => (
-              <div key={i} className="glass-card p-6 bg-white/2 rounded-sm border-white/5">
-                <div className="flex items-center gap-2 text-gray-500 mb-2 font-black uppercase tracking-widest text-[9px]">
+              <div key={i} className="glass-card p-6 bg-white/2">
+                <div className="flex items-center gap-2 text-gray-500 mb-2 font-bold uppercase tracking-tighter text-[10px]">
                   {stat.icon}
                   {stat.label}
                 </div>
-                <p className="text-xl font-serif text-white italic">{stat.value}</p>
+                <p className="text-xl font-black text-white">{stat.value}</p>
               </div>
             ))}
           </div>
@@ -194,12 +194,12 @@ export default function Ingest() {
                   <div className="relative z-10 space-y-10">
                     <div className="flex items-center justify-between">
                       <div className="space-y-1">
-                        <h4 className="text-3xl font-serif text-white italic tracking-tight underline decoration-leagle-accent/30 underline-offset-8">Compliance Determination</h4>
-                        <p className="text-leagle-accent text-[10px] font-black uppercase tracking-[0.2em] mt-2">Executive Audit Result</p>
+                        <h4 className="text-3xl font-black text-white tracking-tight">Compliance Determination</h4>
+                        <p className="text-leagle-accent text-sm font-bold uppercase tracking-widest">Audit Result</p>
                       </div>
-                      <div className={`px-6 py-3 rounded-sm text-sm font-black border tracking-widest ${analysisReport.comprehensive_synthesis.overall_compliance_status === "COMPLIANT" ? "bg-green-500/10 border-green-500/30 text-green-400" :
-                        analysisReport.comprehensive_synthesis.overall_compliance_status === "PARTIALLY_COMPLIANT" ? "bg-yellow-500/10 border-yellow-500/30 text-yellow-400" :
-                          "bg-red-500/10 border-red-500/30 text-red-500"
+                      <div className={`px-6 py-3 rounded-2xl text-lg font-black border-2 shadow-lg ${analysisReport.comprehensive_synthesis.overall_compliance_status === "COMPLIANT" ? "bg-green-500/10 border-green-500 text-green-400" :
+                        analysisReport.comprehensive_synthesis.overall_compliance_status === "PARTIALLY_COMPLIANT" ? "bg-yellow-500/10 border-yellow-500 text-yellow-400" :
+                          "bg-red-500/10 border-red-500 text-red-500"
                         }`}>
                         {analysisReport.comprehensive_synthesis.overall_compliance_status}
                       </div>
@@ -208,7 +208,7 @@ export default function Ingest() {
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
                       <div className="lg:col-span-2 space-y-8">
                         <div className="prose prose-invert max-w-none">
-                          <p className="text-xl text-gray-300 leading-relaxed font-serif italic border-l-2 border-leagle-accent/30 pl-8 bg-white/2 py-4">
+                          <p className="text-lg text-gray-300 leading-relaxed font-medium first-letter:text-5xl first-letter:font-black first-letter:text-leagle-accent first-letter:float-left first-letter:mr-3">
                             {analysisReport.comprehensive_synthesis.executive_summary}
                           </p>
                         </div>

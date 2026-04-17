@@ -16,7 +16,6 @@ class Settings(BaseSettings):
     qdrant_port: int = 6333
     qdrant_url: str | None = None
     qdrant_api_key: str | None = None
-    nvidia_api_key: str = ""
     qdrant_collection: str = "regulations_v1"
     
     # Redis

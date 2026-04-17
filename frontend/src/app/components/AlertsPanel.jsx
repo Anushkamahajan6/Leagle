@@ -1,13 +1,10 @@
-import { useEffect } from 'react'
+"use client"
+
 import { useAppStore } from '../store/appStore'
 import { Bell, AlertTriangle, Info, ChevronRight, Activity, Zap } from 'lucide-react'
 
 export default function AlertsPanel() {
     const { alerts, unreadCount, markRead } = useAppStore()
-
-    useEffect(() => {
-        markRead()
-    }, [markRead])
 
     const getIcon = (severity) => {
         switch (severity) {
@@ -26,27 +23,27 @@ export default function AlertsPanel() {
     }
 
     return (
-        <div className="glass-card overflow-hidden h-full flex flex-col border-white/5 shadow-[0_20px_50px_rgba(0,0,0,0.5)] animate-in fade-in slide-in-from-right-8 duration-700 rounded-sm">
+        <div className="glass-card overflow-hidden h-full flex flex-col border-white/5 shadow-[0_0_50px_rgba(0,0,0,0.3)] animate-in fade-in slide-in-from-right-8 duration-700">
             <div className="p-8 border-b border-white/5 bg-white/5 flex justify-between items-center">
                 <div className="flex items-center gap-4">
                     <div className="relative">
-                        <div className="w-10 h-10 bg-leagle-accent/5 rounded-sm flex items-center justify-center text-leagle-accent border border-leagle-accent/20">
-                            <Bell size={20} />
+                        <div className="w-12 h-12 bg-leagle-accent/10 rounded-2xl flex items-center justify-center text-leagle-accent border border-leagle-accent/20">
+                            <Bell size={24} />
                         </div>
                         {unreadCount > 0 && (
                             <span className="absolute -top-1 -right-1 block h-4 w-4 rounded-full bg-red-600 border-2 border-[#0f172a] shadow-lg animate-pulse" />
                         )}
                     </div>
                     <div>
-                        <h2 className="text-xl font-serif text-white italic tracking-tight">Active Directives</h2>
-                        <p className="text-[10px] font-black text-leagle-accent uppercase tracking-[0.2em] opacity-80 italic">Precision Feed</p>
+                        <h2 className="text-xl font-black text-white tracking-tight">Active Alerts</h2>
+                        <p className="text-[10px] font-black text-leagle-accent uppercase tracking-[0.2em] opacity-80">Live Feed</p>
                     </div>
                 </div>
 
                 {unreadCount > 0 && (
                     <button
                         onClick={markRead}
-                        className="text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-leagle-accent transition-colors bg-white/2 px-4 py-2 rounded-sm border border-white/5"
+                        className="text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-white transition-colors bg-white/5 px-4 py-2 rounded-xl border border-white/5"
                     >
                         Mark as Read
                     </button>

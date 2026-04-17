@@ -41,8 +41,8 @@ export default function RegulationList() {
         <div className="max-w-7xl mx-auto space-y-10">
             <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6">
                 <div className="space-y-2">
-                    <h2 className="text-4xl font-serif text-white tracking-tight italic">Jurisdictional Library</h2>
-                    <p className="text-gray-500 font-medium uppercase text-[10px] tracking-widest">{regulations.length} Records in Portfolio</p>
+                    <h2 className="text-4xl font-black text-white tracking-tight">Regulatory Library</h2>
+                    <p className="text-gray-400 font-medium">{regulations.length} regulations available for review.</p>
                 </div>
 
                 <div className="relative w-full lg:w-[450px] group">
@@ -50,7 +50,7 @@ export default function RegulationList() {
                     <input
                         type="search"
                         placeholder="Filter by jurisdiction or title..."
-                        className="w-full pl-14 pr-8 py-5 bg-white/2 border border-white/5 rounded-sm text-gray-200 placeholder-gray-600 focus:border-leagle-accent transition-all outline-none"
+                        className="w-full pl-14 pr-8 py-5 bg-white/5 border border-white/10 rounded-3xl text-gray-200 placeholder-gray-600 focus:ring-2 focus:ring-leagle-accent/50 focus:border-leagle-accent transition-all outline-none"
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                     />
@@ -62,7 +62,7 @@ export default function RegulationList() {
                     <div
                         key={reg.id}
                         onClick={() => setSelectedReg(reg)}
-                        className="glass-card p-8 group hover:bg-white/[0.02] transition-all duration-300 cursor-pointer relative overflow-hidden flex flex-col justify-between h-full border-white/5 hover:border-leagle-accent/20 rounded-sm"
+                        className="glass-card p-8 group hover:bg-white/[0.04] transition-all duration-500 cursor-pointer relative overflow-hidden flex flex-col justify-between h-full hover:shadow-[0_0_40px_rgba(56,189,248,0.05)] border-white/5 hover:border-leagle-accent/20"
                     >
                         {/* Interactive Background Element */}
                         <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-leagle-accent/10 to-transparent flex items-center justify-center translate-x-12 -translate-y-12 group-hover:translate-x-8 group-hover:-translate-y-8 transition-transform">
@@ -71,18 +71,18 @@ export default function RegulationList() {
 
                         <div className="space-y-6">
                             <div className="flex items-center gap-3">
-                                <span className={`px-2.5 py-1 rounded-sm text-[9px] font-black uppercase tracking-[0.2em] shadow-sm ${reg.jurisdiction === 'UK'
+                                <span className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-[0.2em] shadow-sm ${reg.jurisdiction === 'UK'
                                     ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
                                     : 'bg-leagle-accent/10 text-leagle-accent border border-leagle-accent/20'
                                     }`}>
                                     {reg.jurisdiction || 'Global'}
                                 </span>
-                                <span className="px-2.5 py-1 bg-white/2 border border-white/5 text-gray-500 rounded-sm text-[9px] font-black uppercase tracking-[0.2em]">
+                                <span className="px-2.5 py-1 bg-white/5 border border-white/10 text-gray-500 rounded-lg text-[9px] font-black uppercase tracking-[0.2em]">
                                     {reg.category || 'General'}
                                 </span>
                             </div>
 
-                            <h3 className="text-xl font-serif text-white group-hover:text-leagle-accent transition-colors leading-tight line-clamp-2 italic">
+                            <h3 className="text-xl font-black text-white group-hover:text-leagle-accent transition-colors leading-tight line-clamp-2">
                                 {reg.title}
                             </h3>
 

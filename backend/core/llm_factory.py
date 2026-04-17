@@ -30,15 +30,6 @@ class LLMFactory:
                 max_tokens=max_tokens,
             )
         
-        if target_provider == "nvidia":
-            from langchain_nvidia_ai_endpoints import ChatNVIDIA
-            return ChatNVIDIA(
-                model=settings.llm_model if "nvidia" in settings.llm_model or "meta" in settings.llm_model else "meta/llama-3.3-70b-instruct",
-                api_key=settings.nvidia_api_key,
-                temperature=temperature,
-                max_tokens=max_tokens,
-            )
-
         # Default to Gemini
         return ChatGoogleGenerativeAI(
             model=settings.llm_model,
