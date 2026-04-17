@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { getHeatmap, getImpactDetails } from '../api/client'
-import { ShieldAlert, BarChart3, ChevronRight, Activity, X } from 'lucide-react'
+import { ShieldAlert, BarChart3, Activity, X, Target } from 'lucide-react'
 
 export default function RiskHeatmap() {
     const [data, setData] = useState({ heatmap: {}, total_open_impacts: 0 })
@@ -26,10 +26,7 @@ export default function RiskHeatmap() {
     }, [])
 
     useEffect(() => {
-        if (!selectedCell) {
-            setDetails([])
-            return
-        }
+        if (!selectedCell) return
         async function fetchDetails() {
             setDetailsLoading(true)
             try {
@@ -44,10 +41,15 @@ export default function RiskHeatmap() {
         fetchDetails()
     }, [selectedCell])
 
+    const closeDetails = () => {
+        setSelectedCell(null)
+        setDetails([])
+    }
+
     if (loading) return (
-        <div className="flex flex-col items-center justify-center min-h-[400px]">
-            <Activity className="animate-spin text-blue-500 mb-4" size={40} />
-            <p className="text-gray-400 font-medium animate-pulse">Scanning Risk Matrix...</p>
+        <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+            <Activity className="animate-spin text-leagle-accent" size={40} />
+            <p className="text-gray-500 font-black uppercase tracking-[0.3em] text-[10px] animate-pulse">Loading risk matrix...</p>
         </div>
     )
 
@@ -58,54 +60,58 @@ export default function RiskHeatmap() {
 
     if (departments.length === 0) {
         return (
-            <div className="glass rounded-3xl p-12 text-center max-w-2xl mx-auto border border-blue-100/20">
-                <ShieldAlert className="mx-auto text-blue-200 mb-6" size={64} />
-                <h2 className="text-2xl font-bold text-gray-800 mb-2">Matrix Initialized</h2>
-                <p className="text-gray-500">No impact data detected. Ingest regulations to populate the risk engine.</p>
+            <div className="glass-card p-20 text-center max-w-2xl mx-auto space-y-8">
+                <ShieldAlert className="mx-auto text-leagle-accent/20" size={64} />
+                <div>
+                    <h2 className="text-2xl font-black text-white">Matrix Initialized</h2>
+                    <p className="text-gray-500 mt-2 font-medium">No open impacts detected. Ingest regulations to populate the matrix.</p>
+                </div>
             </div>
         )
     }
 
     const getScoreStyle = (score) => {
         switch (score) {
-            case 3: return 'bg-red-500/90 text-white shadow-[0_0_15px_rgba(239,68,68,0.4)] border-red-400/50'
-            case 2: return 'bg-amber-400/90 text-amber-950 shadow-[0_0_15px_rgba(251,191,36,0.3)] border-amber-300/50'
-            case 1: return 'bg-emerald-400/90 text-emerald-950 shadow-[0_0_15px_rgba(52,211,153,0.3)] border-emerald-300/50'
-            default: return 'bg-white/50 text-gray-300 border-gray-100'
+            case 3: return 'bg-red-500/20 text-red-500 border-red-500/30'
+            case 2: return 'bg-amber-500/20 text-amber-500 border-amber-500/30'
+            case 1: return 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+            default: return 'bg-white/2 text-gray-700 border-white/5 opacity-30 cursor-default'
         }
     }
 
     return (
-        <div className="space-y-8 max-w-6xl mx-auto animate-in fade-in slide-in-from-bottom-6 duration-700">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div>
-                    <div className="flex items-center gap-2 mb-2">
-                        <BarChart3 className="text-blue-600" size={20} />
-                        <h2 className="text-xs font-bold uppercase tracking-widest text-blue-500">Executive Dashboard</h2>
+        <div className="space-y-10 max-w-7xl mx-auto animate-in fade-in slide-in-from-bottom-8 duration-700">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+                <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                        <BarChart3 className="text-leagle-accent" size={18} />
+                        <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-leagle-accent">Risk Oversight</h2>
                     </div>
-                    <h1 className="text-3xl font-black text-gray-900 tracking-tight">Compliance Risk Matrix</h1>
+                    <h1 className="text-4xl font-black text-white tracking-tight">Risk Exposure Matrix</h1>
                 </div>
 
-                <div className="glass px-6 py-3 rounded-2xl border border-blue-100/30 flex items-center gap-4">
+                <div className="glass-card px-8 py-4 flex items-center gap-6 border-white/10">
                     <div className="text-right">
-                        <p className="text-[10px] uppercase font-bold text-gray-400 leading-none mb-1">Active Signals</p>
-                        <p className="text-xl font-black text-blue-600 leading-none">{data.total_open_impacts}</p>
+                        <p className="text-[10px] uppercase font-black text-gray-500 tracking-widest leading-none mb-2">Active Signals</p>
+                        <p className="text-2xl font-black text-white leading-none">{data.total_open_impacts}</p>
                     </div>
-                    <div className="h-8 w-px bg-gray-100"></div>
-                    <Activity className="text-green-500 animate-pulse" size={24} />
+                    <div className="h-10 w-px bg-white/5"></div>
+                    <div className="w-10 h-10 bg-leagle-accent/10 rounded-xl flex items-center justify-center text-leagle-accent border border-leagle-accent/20">
+                        <Activity className="animate-pulse" size={20} />
+                    </div>
                 </div>
             </div>
 
-            <div className="glass rounded-[2.5rem] p-4 md:p-8 border border-white/40 shadow-2xl relative overflow-hidden">
-                <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-blue-400/5 rounded-full blur-3xl"></div>
+            <div className="glass-card p-6 md:p-12 border-white/5 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-96 h-96 bg-leagle-accent/5 blur-3xl rounded-full" />
 
-                <div className="overflow-x-auto">
-                    <table className="w-full border-separate border-spacing-2">
+                <div className="overflow-x-auto custom-scrollbar">
+                    <table className="w-full border-separate border-spacing-4">
                         <thead>
                             <tr>
-                                <th className="p-4 text-left font-black text-gray-400 uppercase text-[10px] tracking-widest">Department</th>
+                                <th className="p-4 text-left font-black text-gray-600 uppercase text-[10px] tracking-[0.3em]">Department</th>
                                 {categories.map(cat => (
-                                    <th key={cat} className="p-4 text-center font-black text-gray-400 uppercase text-[10px] tracking-widest min-w-[120px]">
+                                    <th key={cat} className="p-4 text-center font-black text-gray-600 uppercase text-[10px] tracking-[0.3em] min-w-[150px]">
                                         {cat.replace(/_/g, ' ')}
                                     </th>
                                 ))}
@@ -115,9 +121,9 @@ export default function RiskHeatmap() {
                             {departments.map((dept) => (
                                 <tr key={dept}>
                                     <td className="p-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="h-8 w-1 bg-blue-500 rounded-full"></div>
-                                            <span className="font-bold text-gray-800 text-sm">{dept}</span>
+                                        <div className="flex items-center gap-4">
+                                            <div className="h-10 w-1.5 bg-gradient-to-b from-leagle-accent to-blue-600 rounded-full shadow-[0_0_10px_#38bdf8]"></div>
+                                            <span className="font-black text-white text-lg tracking-tight">{dept}</span>
                                         </div>
                                     </td>
                                     {categories.map(cat => {
@@ -125,19 +131,26 @@ export default function RiskHeatmap() {
                                         return (
                                             <td key={cat}>
                                                 <button
-                                                    onClick={() => setSelectedCell({ dept, cat, score })}
+                                                    onClick={() => score > 0 && setSelectedCell({ dept, cat, score })}
                                                     className={`
-                                                        w-full h-14 rounded-2xl border transition-all duration-300 flex flex-col items-center justify-center group relative
+                                                        w-full h-20 rounded-3xl border transition-all duration-500 flex flex-col items-center justify-center group relative overflow-hidden
                                                         ${getScoreStyle(score)}
-                                                        ${score > 0 ? 'hover:scale-[1.03] active:scale-95' : 'opacity-40 grayscale'}
+                                                        ${score > 0 ? 'hover:scale-[1.05] hover:shadow-[0_0_30px_rgba(255,255,255,0.05)] active:scale-95' : ''}
                                                     `}
                                                 >
                                                     {score > 0 && (
                                                         <>
-                                                            <span className="text-[10px] font-black tracking-tighter opacity-70 mb-0.5">
+                                                            <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                <ArrowUpRight size={12} />
+                                                            </div>
+                                                            <span className="text-[10px] font-black tracking-widest uppercase opacity-80 mb-1">
                                                                 {score === 3 ? 'CRITICAL' : score === 2 ? 'WARNING' : 'STABLE'}
                                                             </span>
-                                                            <ChevronRight size={14} className="absolute right-2 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                                            <div className="flex gap-1">
+                                                                {[...Array(score)].map((_, i) => (
+                                                                    <div key={i} className="w-1.5 h-1.5 rounded-full bg-current" />
+                                                                ))}
+                                                            </div>
                                                         </>
                                                     )}
                                                 </button>
@@ -151,98 +164,127 @@ export default function RiskHeatmap() {
                 </div>
 
                 {/* Legend */}
-                <div className="mt-12 flex flex-wrap gap-8 items-center px-4 pt-8 border-t border-gray-100/50">
-                    <div className="flex items-center gap-3">
-                        <div className="w-5 h-5 bg-red-500 rounded-lg shadow-lg shadow-red-500/30"></div>
-                        <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">High Risk</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                        <div className="w-5 h-5 bg-amber-400 rounded-lg shadow-lg shadow-amber-400/30"></div>
-                        <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Moderate</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                        <div className="w-5 h-5 bg-emerald-400 rounded-lg shadow-lg shadow-emerald-400/30"></div>
-                        <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Optimized</span>
+                <div className="mt-16 flex flex-wrap gap-10 items-center px-6 py-8 bg-white/2 rounded-[2rem] border border-white/5">
+                    {[
+                        { label: "High Risk", color: "bg-red-500 shadow-red-500/40" },
+                        { label: "Moderate", color: "bg-amber-500 shadow-amber-500/40" },
+                        { label: "Stable", color: "bg-emerald-500 shadow-emerald-500/40" }
+                    ].map((item, i) => (
+                        <div key={i} className="flex items-center gap-3">
+                            <div className={`w-4 h-4 rounded-md shadow-lg ${item.color}`} />
+                            <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">{item.label}</span>
+                        </div>
+                    ))}
+                    <div className="ml-auto text-[10px] font-black text-leagle-accent uppercase tracking-widest border-b border-leagle-accent/20 pb-1">
+                        Scoring Model Active
                     </div>
                 </div>
             </div>
 
             {/* Drill Down Overlay */}
             {selectedCell && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-300" onClick={() => setSelectedCell(null)}>
-                    <div className="glass max-w-2xl w-full rounded-[2rem] border border-white/50 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300" onClick={e => e.stopPropagation()}>
-                        <div className="p-8 border-b border-gray-100/50 flex justify-between items-start">
-                            <div>
-                                <h3 className="text-2xl font-black text-gray-900 leading-tight">Departmental Intelligence</h3>
-                                <div className="flex items-center gap-2 mt-2">
-                                    <span className="px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-[10px] font-black uppercase tracking-widest">{selectedCell.dept}</span>
-                                    <span className="px-3 py-1 bg-gray-50 text-gray-500 rounded-full text-[10px] font-black uppercase tracking-widest">{selectedCell.cat?.replace(/_/g, ' ')}</span>
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-leagle-bg/80 backdrop-blur-xl animate-in fade-in duration-300" onClick={closeDetails}>
+                    <div className="glass-card max-w-3xl w-full border-white/10 shadow-[0_0_100px_rgba(0,0,0,0.5)] overflow-hidden animate-in zoom-in-95 duration-300" onClick={e => e.stopPropagation()}>
+                        <div className="p-10 border-b border-white/5 bg-white/5 flex justify-between items-start">
+                            <div className="space-y-4">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2 bg-leagle-accent/10 rounded-xl text-leagle-accent">
+                                        <Target size={20} />
+                                    </div>
+                                    <h3 className="text-xs font-black uppercase tracking-[0.3em] text-leagle-accent">Impact Detail</h3>
                                 </div>
+                                <h4 className="text-3xl font-black text-white tracking-tight leading-tight">
+                                    {selectedCell.dept} Review
+                                </h4>
+                                <p className="text-gray-500 font-bold uppercase text-[10px] tracking-widest">
+                                    Segment: <span className="text-white">{selectedCell.cat?.replace(/_/g, ' ')}</span>
+                                </p>
                             </div>
                             <button
-                                onClick={() => setSelectedCell(null)}
-                                className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-400"
+                                onClick={closeDetails}
+                                className="w-12 h-12 bg-white/5 hover:bg-white/10 rounded-2xl flex items-center justify-center text-gray-500 hover:text-white transition-all border border-white/5"
                             >
                                 <X size={24} />
                             </button>
                         </div>
 
-                        <div className="p-8 max-h-[60vh] overflow-y-auto">
+                        <div className="p-10 max-h-[60vh] overflow-y-auto custom-scrollbar space-y-8">
                             {detailsLoading ? (
-                                <div className="py-20 flex flex-col items-center">
-                                    <Activity className="animate-spin text-blue-500 mb-4" size={32} />
-                                    <p className="text-gray-400 font-bold uppercase text-[10px] tracking-widest">Compiling Evidence...</p>
+                                <div className="py-24 flex flex-col items-center gap-4">
+                                    <Activity className="animate-spin text-leagle-accent" size={32} />
+                                    <p className="text-[10px] font-black uppercase tracking-widest text-leagle-accent animate-pulse">Loading impact evidence...</p>
                                 </div>
                             ) : details.length > 0 ? (
                                 <div className="space-y-6">
                                     {details.map((m, idx) => (
-                                        <div key={idx} className="p-6 bg-white rounded-3xl border border-gray-100 shadow-sm transition-all hover:shadow-md">
-                                            <div className="flex justify-between items-start mb-4">
-                                                <div>
-                                                    <p className="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-1">Impact Event #{idx + 1}</p>
-                                                    <h4 className="font-bold text-gray-900">{m.regulation_title}</h4>
+                                        <div key={idx} className="p-8 bg-white/2 rounded-[2.5rem] border border-white/5 space-y-6 group hover:bg-white/[0.04] transition-all duration-500">
+                                            <div className="flex justify-between items-start">
+                                                <div className="space-y-1">
+                                                    <p className="text-[9px] font-black text-leagle-accent uppercase tracking-widest">Impact Record #{idx + 1}</p>
+                                                    <h4 className="text-xl font-black text-white group-hover:text-leagle-accent transition-colors leading-tight">{m.regulation_title}</h4>
                                                 </div>
-                                                <span className={`px-3 py-1 rounded-full text-[10px] font-black ${m.impact_level === 'HIGH' ? 'bg-red-50 text-red-600' : 'bg-amber-50 text-amber-600'
+                                                <span className={`px-4 py-1 rounded-xl text-[10px] font-black border uppercase tracking-widest ${m.impact_level === 'HIGH' ? 'bg-red-500/10 text-red-400 border-red-500/20 shadow-[0_0_15px_rgba(239,68,68,0.1)]' :
+                                                        'bg-amber-500/10 text-amber-400 border-amber-500/20 shadow-[0_0_15px_rgba(245,158,11,0.1)]'
                                                     }`}>
-                                                    {m.impact_level}
+                                                    {m.impact_level} IMPACT
                                                 </span>
                                             </div>
-                                            <p className="text-sm text-gray-600 leading-relaxed bg-gray-50 p-4 rounded-2xl border border-gray-100/50 italic mb-4">
-                                                "{m.summary}"
-                                            </p>
-                                            <div className="flex gap-4">
-                                                <a
-                                                    href={`https://www.google.com/search?q=${encodeURIComponent(m.regulation_title + ' official text')}`}
-                                                    target="_blank"
-                                                    className="flex-1 py-3 text-center bg-gray-900 text-white text-xs font-bold rounded-xl hover:bg-black transition-all"
-                                                >
-                                                    View Source Text
-                                                </a>
-                                                <button className="flex-1 py-3 text-center bg-blue-50 text-blue-600 text-xs font-bold rounded-xl hover:bg-blue-100 transition-all">
-                                                    Open {m.policy_title}
+
+                                            <div className="relative">
+                                                <div className="absolute left-0 top-0 w-1 h-full bg-leagle-accent/20 rounded-full" />
+                                                <p className="text-sm text-gray-400 leading-relaxed pl-6 italic font-medium">
+                                                    &ldquo;{m.summary}&rdquo;
+                                                </p>
+                                            </div>
+
+                                            <div className="flex gap-4 pt-2">
+                                                <button className="flex-1 py-4 bg-leagle-accent/10 border border-leagle-accent/20 text-leagle-accent font-black uppercase tracking-widest text-[10px] rounded-2xl hover:bg-leagle-accent/20 transition-all active:scale-95 shadow-lg">
+                                                    View Evidence
+                                                </button>
+                                                <button className="flex-1 py-4 bg-white/5 border border-white/10 text-gray-500 font-black uppercase tracking-widest text-[10px] rounded-2xl hover:text-white hover:bg-white/10 transition-all active:scale-95">
+                                                    Open Affected Policy
                                                 </button>
                                             </div>
                                         </div>
                                     ))}
                                 </div>
                             ) : (
-                                <div className="py-12 text-center text-gray-400">
-                                    <p className="font-bold">No active remediation tasks for this cell.</p>
+                                <div className="py-20 text-center space-y-4">
+                                    <div className="text-4xl opacity-20">🛡️</div>
+                                    <p className="font-black uppercase tracking-widest text-[10px] text-gray-600">No open impacts in this segment.</p>
                                 </div>
                             )}
                         </div>
 
-                        <div className="p-8 bg-gray-50 border-t border-gray-100 flex justify-end">
+                        <div className="p-10 bg-white/5 border-t border-white/5 flex justify-end">
                             <button
-                                onClick={() => setSelectedCell(null)}
-                                className="px-8 py-3 bg-white border border-gray-200 text-gray-600 rounded-xl font-bold text-sm hover:bg-gray-100 transition-all"
+                                onClick={closeDetails}
+                                className="px-10 py-4 bg-white/5 border border-white/10 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-white/10 transition-all active:scale-95"
                             >
-                                Close Report
+                                Close
                             </button>
                         </div>
                     </div>
                 </div>
             )}
         </div>
+    )
+}
+
+function ArrowUpRight({ size }) {
+    return (
+        <svg
+            width={size}
+            height={size}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="3"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+        >
+            <line x1="7" y1="17" x2="17" y2="7"></line>
+            <polyline points="7 7 17 7 17 17"></polyline>
+        </svg>
     )
 }

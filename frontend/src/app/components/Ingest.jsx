@@ -1,6 +1,9 @@
+'use client'
+
 import { useState } from "react";
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { Upload, FileText, ShieldAlert, Zap, ArrowRight, Info, CheckCircle2 } from 'lucide-react'
 
 export default function Ingest() {
   const [file, setFile] = useState(null);
@@ -8,6 +11,8 @@ export default function Ingest() {
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
   const [debug, setDebug] = useState(false);
+  const [analysisLoading, setAnalysisLoading] = useState(false);
+  const [analysisReport, setAnalysisReport] = useState(null);
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
@@ -17,7 +22,7 @@ export default function Ingest() {
   };
 
   const handleUpload = async () => {
-    if (!file) return alert("Upload a PDF first");
+    if (!file) return alert("Please select a document first.");
 
     setLoading(true);
     setError(null);
@@ -43,20 +48,12 @@ export default function Ingest() {
 
       const data = await res.json();
       setResult(data);
-      alert("✅ Processed successfully 🚀");
-      setFile(null);
     } catch (err) {
-      const errorMsg = err.message || "Unknown error occurred";
-      setError(errorMsg);
-      console.error("Upload error:", err);
-      alert(`❌ Error: ${errorMsg}`);
+      setError(err.message || "Unknown error occurred");
     } finally {
       setLoading(false);
     }
   };
-
-  const [analysisLoading, setAnalysisLoading] = useState(false);
-  const [analysisReport, setAnalysisReport] = useState(null);
 
   const handleRunAnalysis = async () => {
     if (!result || !result.document_id) return;
@@ -73,285 +70,239 @@ export default function Ingest() {
 
       const data = await res.json();
       setAnalysisReport(data.report);
-      alert("✅ Gap Analysis Complete!");
     } catch (err) {
-      alert(`❌ Analysis Error: ${err.message}`);
+      setError(`Analysis Error: ${err.message}`);
     } finally {
       setAnalysisLoading(false);
     }
   };
 
   return (
-    <div className="space-y-6">
-      <Field>
-        <FieldLabel htmlFor="pdf-upload">Upload PDF</FieldLabel>
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      {!result ? (
+        <div className="glass-card p-12 border-2 border-dashed border-white/10 hover:border-leagle-accent/50 transition-all group relative overflow-hidden text-center space-y-8">
+          <div className="absolute inset-0 bg-leagle-accent/5 opacity-0 group-hover:opacity-100 transition-opacity blur-3xl rounded-full scale-150" />
 
-        <Input
-          id="pdf-upload"
-          type="file"
-          accept="application/pdf"
-          onChange={handleFileChange}
-          disabled={loading}
-          className="hidden"
-        />
-
-        <label
-          htmlFor="pdf-upload"
-          className={`cursor-pointer inline-block px-4 py-2 bg-blue-600 text-white rounded-lg transition-transform active:scale-95 ${loading ? "opacity-50 cursor-not-allowed" : "hover:bg-blue-700 shadow-md"
-            }`}
-        >
-          📄 Choose PDF File
-        </label>
-
-        <FieldDescription>
-          Upload a PDF document (max 50MB). It will be processed through extraction, chunking, and embedding.
-        </FieldDescription>
-
-        {file && (
-          <p className="text-sm font-medium text-blue-600 mt-2 flex items-center gap-1">
-            <span className="animate-pulse">⏳</span> Selected: {file.name}
-          </p>
-        )}
-
-        <div className="mt-4 flex items-center gap-4">
-          <button
-            onClick={handleUpload}
-            disabled={!file || loading}
-            className={`px-6 py-2 rounded-lg text-white font-bold transition-all ${loading || !file
-                ? "bg-gray-300 cursor-not-allowed"
-                : "bg-green-600 hover:bg-green-700 shadow-lg hover:-translate-y-0.5"
-              }`}
-          >
-            {loading ? "⏳ Ingesting..." : "Upload & Process"}
-          </button>
-
-          <label className="flex items-center gap-2 cursor-pointer select-none">
-            <input
-              type="checkbox"
-              checked={debug}
-              onChange={(e) => setDebug(e.target.checked)}
-              disabled={loading}
-              className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-            />
-            <span className="text-sm text-gray-500 font-medium">Debug output</span>
-          </label>
-        </div>
-
-        {error && (
-          <div className="mt-4 p-4 bg-red-50 border-l-4 border-red-500 rounded-r-lg shadow-sm">
-            <p className="text-sm text-red-700">
-              <strong>Processing Failed:</strong> {error}
-            </p>
-          </div>
-        )}
-
-        {result && (
-          <div className="mt-6 animate-in fade-in slide-in-from-top-4 duration-500">
-            <div className="p-5 bg-white border border-green-200 rounded-2xl shadow-sm space-y-4">
-              <div className="flex items-center justify-between border-b pb-3">
-                <div>
-                  <h3 className="text-lg font-bold text-green-800">✅ Ingestion Successful</h3>
-                  <p className="text-xs text-green-600 font-medium">Document ID: {result.document_id}</p>
-                </div>
-                {!analysisReport && (
-                  <button
-                    onClick={handleRunAnalysis}
-                    disabled={analysisLoading}
-                    className={`px-4 py-2 rounded-full text-sm font-bold shadow-sm transition-all ${analysisLoading
-                        ? "bg-gray-100 text-gray-400"
-                        : "bg-blue-600 text-white hover:bg-blue-700 active:scale-95"
-                      }`}
-                  >
-                    {analysisLoading ? "🧠 Analyzing Chunks..." : "⚡ Run Comparative Gap Analysis"}
-                  </button>
-                )}
-              </div>
-
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
-                {[
-                  { label: "Size", value: `${result.pipeline_stats.file_size_mb} MB` },
-                  { label: "Pages", value: result.pipeline_stats.extracted_pages },
-                  { label: "Chunks", value: result.pipeline_stats.num_chunks },
-                  { label: "Embeddings", value: result.pipeline_stats.num_embeddings },
-                ].map((stat, i) => (
-                  <div key={i} className="bg-gray-50 p-2 rounded-lg">
-                    <p className="text-gray-400 uppercase tracking-tighter font-bold">{stat.label}</p>
-                    <p className="text-gray-800 text-sm font-black">{stat.value}</p>
-                  </div>
-                ))}
-              </div>
-
-              {analysisReport && (
-                <div className="mt-6 pt-4 border-t space-y-6 animate-in zoom-in-95 duration-300">
-                  {/* COMPREHENSIVE LEGAL DETERMINATION */}
-                  {analysisReport.comprehensive_synthesis && (
-                    <div className="p-5 bg-gradient-to-br from-purple-50 to-blue-50 rounded-2xl border-2 border-purple-200 shadow-lg space-y-4">
-                      <div className="flex items-center justify-between border-b border-purple-200 pb-3">
-                        <div className="flex items-center gap-3">
-                          <div className="text-2xl">⚖️</div>
-                          <div>
-                            <h3 className="text-lg font-black text-purple-900">Comprehensive Legal Determination</h3>
-                            <p className="text-xs text-purple-600">AI-Generated Compliance Audit Report</p>
-                          </div>
-                        </div>
-                        <div className={`px-4 py-2 rounded-full text-sm font-black ${
-                          analysisReport.comprehensive_synthesis.overall_compliance_status === "COMPLIANT" ? "bg-green-100 text-green-700" :
-                          analysisReport.comprehensive_synthesis.overall_compliance_status === "PARTIALLY_COMPLIANT" ? "bg-yellow-100 text-yellow-700" :
-                          "bg-red-100 text-red-700"
-                        }`}>
-                          {analysisReport.comprehensive_synthesis.overall_compliance_status}
-                        </div>
-                      </div>
-
-                      {/* Executive Summary */}
-                      <div>
-                        <h4 className="text-sm font-bold text-purple-900 mb-2">Executive Summary</h4>
-                        <p className="text-sm text-gray-800 leading-relaxed">
-                          {analysisReport.comprehensive_synthesis.executive_summary}
-                        </p>
-                      </div>
-
-                      {/* Legal Determination */}
-                      <div className="p-4 bg-white rounded-lg border-l-4 border-purple-500">
-                        <h4 className="text-sm font-bold text-purple-900 mb-2">Legal Determination</h4>
-                        <p className="text-sm text-gray-800 leading-relaxed font-medium">
-                          {analysisReport.comprehensive_synthesis.legal_determination}
-                        </p>
-                      </div>
-
-                      {/* Critical Issues */}
-                      {analysisReport.comprehensive_synthesis.critical_issues?.length > 0 && (
-                        <div>
-                          <h4 className="text-sm font-bold text-red-900 mb-3">🚨 Critical Issues</h4>
-                          <div className="space-y-3">
-                            {analysisReport.comprehensive_synthesis.critical_issues.map((issue, idx) => (
-                              <div key={idx} className={`p-3 rounded-lg border-l-4 ${
-                                issue.severity === "CRITICAL" ? "bg-red-50 border-red-500" :
-                                issue.severity === "HIGH" ? "bg-orange-50 border-orange-500" :
-                                "bg-yellow-50 border-yellow-500"
-                              }`}>
-                                <p className="text-sm font-bold text-gray-900">{issue.issue}</p>
-                                <p className="text-xs text-gray-700 mt-1">
-                                  <strong>Affected Areas:</strong> {issue.affected_areas?.join(", ")}
-                                </p>
-                                <p className="text-xs text-red-700 mt-1 font-medium">
-                                  <strong>Legal Exposure:</strong> {issue.legal_exposure}
-                                </p>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Systemic Patterns */}
-                      {analysisReport.comprehensive_synthesis.systemic_patterns?.length > 0 && (
-                        <div>
-                          <h4 className="text-sm font-bold text-orange-900 mb-2">📊 Systemic Patterns</h4>
-                          <ul className="text-xs text-gray-700 list-disc list-inside space-y-1">
-                            {analysisReport.comprehensive_synthesis.systemic_patterns.map((pattern, idx) => (
-                              <li key={idx}>{pattern}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-
-                      {/* Immediate Actions */}
-                      {analysisReport.comprehensive_synthesis.immediate_actions?.length > 0 && (
-                        <div>
-                          <h4 className="text-sm font-bold text-blue-900 mb-3">✅ Immediate Actions Required</h4>
-                          <div className="space-y-2">
-                            {analysisReport.comprehensive_synthesis.immediate_actions.map((action, idx) => (
-                              <div key={idx} className="p-3 bg-blue-50 rounded-lg border border-blue-200">
-                                <div className="flex items-start gap-3">
-                                  <div className="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 text-xs font-bold">
-                                    {action.priority}
-                                  </div>
-                                  <div className="flex-1">
-                                    <p className="text-sm font-bold text-gray-900">{action.action}</p>
-                                    <p className="text-xs text-gray-600 mt-1">
-                                      <strong>Timeline:</strong> {action.timeline} days | <strong>Owner:</strong> {action.responsible_party}
-                                    </p>
-                                  </div>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Regulatory Exposure */}
-                      {analysisReport.comprehensive_synthesis.regulatory_exposure_summary && (
-                        <div className="p-3 bg-red-50 rounded-lg border border-red-200">
-                          <h4 className="text-sm font-bold text-red-900 mb-2">⚠️ Regulatory Exposure Summary</h4>
-                          <p className="text-xs text-red-800">{analysisReport.comprehensive_synthesis.regulatory_exposure_summary}</p>
-                        </div>
-                      )}
-
-                      {/* Compliance Score */}
-                      <div className="flex items-center justify-between p-3 bg-blue-100 rounded-lg">
-                        <span className="font-bold text-blue-900">Overall Compliance Score:</span>
-                        <div className="text-lg font-black text-blue-700">
-                          {analysisReport.comprehensive_synthesis.compliance_score}%
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Individual Chunk Findings */}
-                  <div>
-                    <div className="flex items-center justify-between mb-4">
-                      <h4 className="text-lg font-bold text-gray-900">Detail: Per-Chunk Analysis</h4>
-                      <div className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-black">
-                        Score: {analysisReport.overall_alignment_score}% Match
-                      </div>
-                    </div>
-
-                    <div className="space-y-4">
-                      {analysisReport.findings.map((finding, idx) => (
-                        <div key={idx} className="p-4 bg-gray-50 rounded-xl border border-gray-100 space-y-2">
-                          <div className="flex items-center justify-between">
-                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${finding.risk_impact === "HIGH" ? "bg-red-100 text-red-600" :
-                                finding.risk_impact === "MEDIUM" ? "bg-orange-100 text-orange-600" :
-                                  "bg-green-100 text-green-600"
-                              }`}>
-                              {finding.risk_impact} RISK GAP
-                            </span>
-                            <span className="text-[10px] text-gray-400 font-mono">CHUNK #{idx + 1}</span>
-                          </div>
-                          <p className="text-xs italic text-gray-500">"{finding.chunk_preview}"</p>
-                          <p className="text-sm font-bold text-gray-800">{finding.alignment_summary}</p>
-                          <ul className="text-xs text-red-600 list-disc list-inside font-medium">
-                            {finding.specific_gaps.map((gap, gIdx) => (
-                              <li key={gIdx}>{gap}</li>
-                            ))}
-                          </ul>
-                          <div className="pt-2 flex items-center gap-2">
-                            <span className="text-[10px] font-bold text-gray-400">CITES:</span>
-                            {finding.matched_regulations.map((reg, rIdx) => (
-                              <span key={rIdx} className="px-2 py-1 bg-white border rounded shadow-sm text-[9px] font-bold text-blue-600">
-                                {reg}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {debug && result.extraction && (
-                <div className="mt-3 p-3 bg-gray-900 rounded-xl text-[10px] font-mono text-green-400 overflow-hidden">
-                  <p className="text-white font-bold mb-2">/internal/debug/extraction_stream</p>
-                  <p className="whitespace-pre-wrap opacity-80">
-                    {result.extraction.text_preview}
-                  </p>
-                </div>
-              )}
+          <div className="relative z-10">
+            <div className="w-24 h-24 bg-white/5 rounded-3xl flex items-center justify-center text-4xl mx-auto border border-white/10 mb-6 group-hover:scale-110 transition-transform">
+              {loading ? '⏳' : '📥'}
+            </div>
+            <div>
+              <h3 className="text-3xl font-black text-white tracking-tight">Document Ingestion</h3>
+              <p className="text-gray-400 mt-2 font-medium max-w-sm mx-auto text-sm">Upload a policy or regulation document to extract text and run compliance analysis.</p>
             </div>
           </div>
-        )}
-      </Field>
+
+          <div className="relative z-10 flex flex-col items-center gap-4">
+            <Input
+              id="pdf-upload"
+              type="file"
+              accept="application/pdf"
+              onChange={handleFileChange}
+              disabled={loading}
+              className="hidden"
+            />
+            <label
+              htmlFor="pdf-upload"
+              className={`btn-premium cursor-pointer inline-flex items-center gap-3 ${loading ? 'opacity-50 pointer-events-none' : ''}`}
+            >
+              <Upload size={20} />
+              {file ? file.name : 'Select PDF Document'}
+            </label>
+
+            {file && !loading && (
+              <button onClick={handleUpload} className="text-leagle-accent font-black uppercase tracking-widest text-[10px] hover:underline underline-offset-4 animate-bounce">
+                Start Ingestion
+              </button>
+            )}
+          </div>
+
+          <div className="relative z-10 flex items-center justify-center gap-6 pt-4">
+            <label className="flex items-center gap-2 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={debug}
+                onChange={(e) => setDebug(e.target.checked)}
+                disabled={loading}
+                className="w-4 h-4 rounded border-white/10 bg-white/5 text-leagle-accent focus:ring-leagle-accent"
+              />
+              <span className="text-[10px] uppercase font-black text-gray-500 tracking-widest">Enhanced Debug Stream</span>
+            </label>
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-10">
+          {/* SUCCESS HEADER */}
+          <div className="glass-card p-8 bg-gradient-to-r from-leagle-accent/5 to-transparent border-leagle-accent/20 flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div className="flex items-center gap-6">
+              <div className="w-16 h-16 bg-leagle-accent/20 rounded-2xl flex items-center justify-center text-leagle-accent shadow-[0_0_30px_rgba(56,189,248,0.2)]">
+                <CheckCircle2 size={30} />
+              </div>
+              <div>
+                <h3 className="text-2xl font-black text-white">Ingestion Complete</h3>
+                <p className="text-sm text-gray-400 font-medium">Document ID: <span className="font-mono text-xs">{result.document_id}</span></p>
+              </div>
+            </div>
+
+            {!analysisReport && (
+              <button
+                onClick={handleRunAnalysis}
+                disabled={analysisLoading}
+                className="btn-premium px-8 py-4 text-sm tracking-tighter"
+              >
+                {analysisLoading ? (
+                  <span className="flex items-center gap-2">
+                    <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Running analysis...
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-2">
+                    <Zap size={18} className="fill-white" />
+                    Run Compliance Analysis
+                  </span>
+                )}
+              </button>
+            )}
+          </div>
+
+          {/* STATS GRID */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {[
+              { label: "File Mass", value: `${result.pipeline_stats.file_size_mb} MB`, icon: <FileText size={14} /> },
+              { label: "Text Chunks", value: result.pipeline_stats.num_chunks, icon: <Zap size={14} /> },
+              { label: "Embeddings", value: result.pipeline_stats.num_embeddings, icon: <ArrowRight size={14} /> },
+              { label: "Strategy", value: result.pipeline_stats.chunking_strategy, icon: <Info size={14} /> },
+            ].map((stat, i) => (
+              <div key={i} className="glass-card p-6 bg-white/2">
+                <div className="flex items-center gap-2 text-gray-500 mb-2 font-bold uppercase tracking-tighter text-[10px]">
+                  {stat.icon}
+                  {stat.label}
+                </div>
+                <p className="text-xl font-black text-white">{stat.value}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* GAP REPORT */}
+          {analysisReport && (
+            <div className="space-y-10 animate-in zoom-in-95 duration-500">
+              {/* HOLISTIC DETERMINATION */}
+              {analysisReport.comprehensive_synthesis && (
+                <div className="glass-card border-none bg-gradient-to-br from-[#1e1b4b] to-[#030617] p-12 relative overflow-hidden backdrop-blur-3xl shadow-[0_0_100px_rgba(56,189,248,0.05)]">
+                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-leagle-accent to-transparent opacity-50" />
+
+                  <div className="relative z-10 space-y-10">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-1">
+                        <h4 className="text-3xl font-black text-white tracking-tight">Compliance Determination</h4>
+                        <p className="text-leagle-accent text-sm font-bold uppercase tracking-widest">Audit Result</p>
+                      </div>
+                      <div className={`px-6 py-3 rounded-2xl text-lg font-black border-2 shadow-lg ${analysisReport.comprehensive_synthesis.overall_compliance_status === "COMPLIANT" ? "bg-green-500/10 border-green-500 text-green-400" :
+                          analysisReport.comprehensive_synthesis.overall_compliance_status === "PARTIALLY_COMPLIANT" ? "bg-yellow-500/10 border-yellow-500 text-yellow-400" :
+                            "bg-red-500/10 border-red-500 text-red-500"
+                        }`}>
+                        {analysisReport.comprehensive_synthesis.overall_compliance_status}
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+                      <div className="lg:col-span-2 space-y-8">
+                        <div className="prose prose-invert max-w-none">
+                          <p className="text-lg text-gray-300 leading-relaxed font-medium first-letter:text-5xl first-letter:font-black first-letter:text-leagle-accent first-letter:float-left first-letter:mr-3">
+                            {analysisReport.comprehensive_synthesis.executive_summary}
+                          </p>
+                        </div>
+
+                        <div className="space-y-4">
+                          <h5 className="text-xs font-black uppercase tracking-widest text-red-500 flex items-center gap-2">
+                            <ShieldAlert size={14} /> Critical Findings
+                          </h5>
+                          <div className="grid gap-4">
+                            {analysisReport.comprehensive_synthesis.critical_issues?.map((issue, idx) => (
+                              <div key={idx} className="p-6 bg-red-500/5 border border-red-500/20 rounded-3xl space-y-2">
+                                <p className="text-lg font-black text-gray-100">{issue.issue}</p>
+                                <p className="text-sm text-red-400/80 font-medium">Exposure: {issue.legal_exposure}</p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="space-y-8">
+                        <div className="p-8 bg-leagle-accent/5 border border-leagle-accent/10 rounded-3xl text-center space-y-4">
+                          <p className="text-[10px] font-black uppercase tracking-widest text-leagle-accent">Audit Score</p>
+                          <p className="text-6xl font-black text-white tracking-tighter">
+                            {analysisReport.comprehensive_synthesis.compliance_score}%
+                          </p>
+                          <div className="w-full bg-white/5 h-1.5 rounded-full overflow-hidden">
+                            <div className="bg-leagle-accent h-full shadow-[0_0_10px_#38bdf8]" style={{ width: `${analysisReport.comprehensive_synthesis.compliance_score}%` }} />
+                          </div>
+                        </div>
+
+                        <div className="space-y-4">
+                          <h5 className="text-[10px] font-black uppercase tracking-widest text-gray-500">Immediate Actions</h5>
+                          <div className="space-y-2">
+                            {analysisReport.comprehensive_synthesis.immediate_actions?.map((action, idx) => (
+                              <div key={idx} className="p-4 bg-white/2 border border-white/5 rounded-2xl flex gap-3 items-start">
+                                <div className="w-5 h-5 rounded-lg bg-leagle-accent text-[10px] flex items-center justify-center font-black text-black mt-0.5">
+                                  {action.priority}
+                                </div>
+                                <p className="text-xs font-medium text-gray-300">{action.action}</p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* DETAIL LIST */}
+              <div className="space-y-6">
+                <h4 className="text-xl font-black text-white px-2">Document Findings</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {analysisReport.findings.map((finding, idx) => (
+                    <div key={idx} className="glass-card p-6 bg-white/2 group hover:bg-white/5 transition-all">
+                      <div className="flex items-center justify-between mb-4">
+                        <span className={`px-2 py-1 rounded text-[9px] font-black tracking-widest uppercase ${finding.risk_impact === "HIGH" ? "bg-red-500/20 text-red-400" :
+                            finding.risk_impact === "MEDIUM" ? "bg-orange-500/20 text-orange-400" :
+                              "bg-green-500/20 text-green-400"
+                          }`}>
+                          {finding.risk_impact} Severity
+                        </span>
+                        <span className="text-[9px] font-mono text-gray-500">#{idx + 1}</span>
+                      </div>
+                      <p className="text-sm font-bold text-gray-200 mb-2 leading-tight">{finding.alignment_summary}</p>
+                      <ul className="text-xs text-red-400/80 space-y-1 mb-4">
+                        {finding.specific_gaps.map((gap, gIdx) => (
+                          <li key={gIdx} className="flex gap-2">
+                            <span>•</span>
+                            {gap}
+                          </li>
+                        ))}
+                      </ul>
+                      <div className="pt-4 border-t border-white/5 flex flex-wrap gap-2">
+                        {finding.matched_regulations.map((reg, rIdx) => (
+                          <span key={rIdx} className="px-2 py-1 bg-white/5 rounded text-[8px] font-bold text-leagle-accent uppercase border border-white/5">
+                            {reg}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {error && (
+            <div className="p-6 bg-red-500/10 border border-red-500/30 rounded-3xl text-center">
+              <p className="text-red-500 font-bold">🚨 {error}</p>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

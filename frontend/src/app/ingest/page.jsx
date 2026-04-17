@@ -1,13 +1,16 @@
 'use client'
 
 import Ingest from '../components/Ingest'
+import { Upload } from 'lucide-react'
 
 export default function IngestPage() {
     return (
-        <div className="bg-white p-8 rounded-3xl shadow-xl border border-gray-100">
-            <h2 className="text-2xl font-black text-gray-900 mb-6 flex items-center gap-3">
-                <span className="bg-blue-600 text-white w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold">↑</span>
-                Document Intelligence Ingestion
+        <div className="glass-card p-8 border border-white/10">
+            <h2 className="text-2xl font-black text-white mb-6 flex items-center gap-3">
+                <span className="bg-leagle-accent/10 text-leagle-accent w-8 h-8 rounded-lg flex items-center justify-center border border-leagle-accent/20">
+                    <Upload size={16} />
+                </span>
+                Document Ingestion
             </h2>
             <Ingest />
         </div>

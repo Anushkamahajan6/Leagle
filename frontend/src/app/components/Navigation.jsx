@@ -1,77 +1,86 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { LayoutDashboard, Scale, Search, Upload, BarChart3, Bell, Target, RefreshCw } from 'lucide-react'
 
 export default function Navigation() {
     const pathname = usePathname()
+    const [syncLoading, setSyncLoading] = useState(false)
+    const [syncMessage, setSyncMessage] = useState('')
 
     const tabs = [
-        { name: 'dashboard', path: '/dashboard' },
-        { name: 'regulations', path: '/regulations' },
-        { name: 'search', path: '/search' },
-        { name: 'ingest', path: '/ingest' },
-        { name: 'heatmap', path: '/heatmap' },
-        { name: 'alerts', path: '/alerts' },
-        { name: 'impact', path: '/impact' },
+        { name: 'dashboard', path: '/dashboard', icon: LayoutDashboard },
+        { name: 'regulations', path: '/regulations', icon: Scale },
+        { name: 'search', path: '/search', icon: Search },
+        { name: 'ingest', path: '/ingest', icon: Upload },
+        { name: 'heatmap', path: '/heatmap', icon: BarChart3 },
+        { name: 'alerts', path: '/alerts', icon: Bell },
+        { name: 'impact', path: '/impact', icon: Target },
     ]
 
     const handleSync = async () => {
+        setSyncLoading(true)
+        setSyncMessage('Sync in progress...')
         try {
-            const btn = document.getElementById('sync-uk-btn');
-            btn.innerText = 'Syncing...';
-            btn.disabled = true;
-
-            const resp = await fetch('http://localhost:8000/api/regulations/sync/uk', { method: 'POST' });
-            const data = await resp.json();
-            alert(`Sync Complete! Ingested ${data.count} new regulations.`);
-            window.location.reload();
+            const resp = await fetch('http://localhost:8000/api/regulations/sync/uk', { method: 'POST' })
+            const data = await resp.json()
+            setSyncMessage(`Sync complete: ${data.count} regulations added.`)
+            window.location.reload()
         } catch (e) {
-            alert('Sync failed. Please try again.');
+            setSyncMessage('Sync failed. Try again.')
         } finally {
-            const btn = document.getElementById('sync-uk-btn');
-            if (btn) {
-                btn.innerText = 'Sync UK Live Feed';
-                btn.disabled = false;
-            }
+            setSyncLoading(false)
         }
     }
 
     return (
-        <>
-            <header className="bg-white border-b px-6 py-4 flex justify-between items-center">
-                <h1 className="text-xl font-bold text-gray-900">
-                    AI Compliance Management System
-                </h1>
+        <aside className="fixed left-0 top-0 bottom-0 w-[76px] min-h-screen shrink-0 bg-[rgba(2,9,22,0.98)] border-r border-[rgba(56,189,248,0.09)] z-30 flex flex-col items-center">
+            <div className="w-full py-[18px] border-b border-white/5 flex justify-center">
+                <div className="w-10 h-10 rounded-[11px] bg-gradient-to-br from-blue-700 to-sky-700 flex items-center justify-center text-[10px] font-black text-sky-100 tracking-[-0.3px] shadow-[0_0_0_1px_rgba(56,189,248,0.3),0_6px_20px_rgba(29,78,216,0.5)]">
+                    LG
+                </div>
+            </div>
 
+            <nav className="flex-1 w-full py-2.5 flex flex-col gap-px">
+                {tabs.map((tab) => {
+                    const isActive = pathname === tab.path || (pathname === '/' && tab.path === '/dashboard')
+                    const Icon = tab.icon
+                    return (
+                        <Link
+                            key={tab.path}
+                            href={tab.path}
+                            title={tab.name.charAt(0).toUpperCase() + tab.name.slice(1)}
+                            className={`cm-nav-item ${isActive ? 'active' : ''}`}
+                        >
+                            <Icon size={17} strokeWidth={1.8} className={isActive ? 'text-leagle-accent' : 'text-slate-500'} />
+                            <span className={`text-[9px] font-bold tracking-[0.07em] uppercase ${isActive ? 'text-leagle-accent' : 'text-slate-500'}`}>
+                                {tab.name}
+                            </span>
+                        </Link>
+                    )
+                })}
+            </nav>
+
+            <div className="w-full py-2 border-t border-white/5 flex flex-col items-center gap-2">
                 <button
                     onClick={handleSync}
-                    id="sync-uk-btn"
-                    className="px-6 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-full text-sm font-bold shadow-md hover:shadow-indigo-300 transition-all active:scale-95"
+                    disabled={syncLoading}
+                    title="Sync UK Source"
+                    className="w-10 h-10 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 flex items-center justify-center text-slate-400 hover:text-slate-200 transition-colors disabled:opacity-50"
                 >
-                    Sync UK Live Feed
+                    <RefreshCw size={14} className={syncLoading ? 'animate-spin' : ''} />
                 </button>
-            </header>
+                <div className="w-[7px] h-[7px] rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.7)] animate-[cm-pulse_2s_ease-in-out_infinite]" />
+                <span className="text-[8px] font-extrabold uppercase tracking-[0.08em] text-green-400/50">Active</span>
+            </div>
 
-            <nav className="bg-white border-b px-6 sticky top-0 z-50">
-                <div className="flex gap-6">
-                    {tabs.map((tab) => {
-                        const isActive = pathname === tab.path || (pathname === '/' && tab.path === '/dashboard')
-                        return (
-                            <Link
-                                key={tab.path}
-                                href={tab.path}
-                                className={`py-3 text-sm font-medium capitalize border-b-2 transition-colors ${isActive
-                                        ? 'border-blue-600 text-blue-600'
-                                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-200'
-                                    }`}
-                            >
-                                {tab.name}
-                            </Link>
-                        )
-                    })}
-                </div>
-            </nav>
-        </>
+            {syncMessage && (
+                <p className="absolute bottom-16 left-[88px] px-3 py-1.5 rounded-lg border border-white/10 bg-[rgba(2,9,22,0.96)] text-[10px] uppercase tracking-widest text-slate-400 whitespace-nowrap">
+                    {syncMessage}
+                </p>
+            )}
+        </aside>
     )
 }
