@@ -12,6 +12,8 @@ class Settings(BaseSettings):
     # Qdrant
     qdrant_host: str = "localhost"
     qdrant_port: int = 6333
+    qdrant_url: str | None = None
+    qdrant_api_key: str | None = None
     qdrant_collection: str = "regulations_v1"
     
     # Redis

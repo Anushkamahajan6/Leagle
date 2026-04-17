@@ -48,11 +48,18 @@ def get_qdrant_client() -> QdrantClient:
     """Get or create Qdrant client singleton"""
     global _qdrant_client
     if _qdrant_client is None:
-        _qdrant_client = QdrantClient(
-            host=settings.qdrant_host,
-            port=settings.qdrant_port,
-        )
-        logger.info(f"✅ Connected to Qdrant at {settings.qdrant_host}:{settings.qdrant_port}")
+        if settings.qdrant_url:
+            _qdrant_client = QdrantClient(
+                url=settings.qdrant_url,
+                api_key=settings.qdrant_api_key,
+            )
+            logger.info(f"✅ Connected to Qdrant Cloud at {settings.qdrant_url}")
+        else:
+            _qdrant_client = QdrantClient(
+                host=settings.qdrant_host,
+                port=settings.qdrant_port,
+            )
+            logger.info(f"✅ Connected to local Qdrant at {settings.qdrant_host}:{settings.qdrant_port}")
     return _qdrant_client
 
 
@@ -77,19 +84,37 @@ def ensure_collection_exists() -> None:
         collections = client.get_collections()
         collection_names = [col.name for col in collections.collections]
         
-        if COLLECTION_NAME in collection_names:
+        if COLLECTION_NAME not in collection_names:
+            # Create collection with cosine similarity distance
+            client.create_collection(
+                collection_name=COLLECTION_NAME,
+                vectors_config=VectorParams(
+                    size=VECTOR_SIZE,
+                    distance=Distance.COSINE,
+                ),
+            )
+            logger.info(f"✅ Created Qdrant collection: {COLLECTION_NAME}")
+        else:
             logger.info(f"✅ Collection '{COLLECTION_NAME}' already exists")
-            return
+
+        # Create payload indexes for filtered fields (Required for Qdrant Cloud)
+        from qdrant_client.models import PayloadSchemaType
+        indexed_fields = ["filename", "source_type", "category", "jurisdiction"]
         
-        # Create collection with cosine similarity distance
-        client.create_collection(
-            collection_name=COLLECTION_NAME,
-            vectors_config=VectorParams(
-                size=VECTOR_SIZE,
-                distance=Distance.COSINE,
-            ),
-        )
-        logger.info(f"✅ Created Qdrant collection: {COLLECTION_NAME}")
+        # Get existing indexes to avoid duplicates
+        current_collection = client.get_collection(COLLECTION_NAME)
+        existing_indexes = current_collection.payload_schema.keys()
+        
+        for field in indexed_fields:
+            if field not in existing_indexes:
+                client.create_payload_index(
+                    collection_name=COLLECTION_NAME,
+                    field_name=field,
+                    field_schema=PayloadSchemaType.KEYWORD,
+                )
+                logger.info(f"✅ Created payload index for: {field}")
+            else:
+                logger.info(f"✅ Payload index for '{field}' already exists")
     except Exception as e:
         logger.error(f"❌ Error ensuring collection exists: {e}")
         raise
