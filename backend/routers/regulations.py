@@ -5,6 +5,7 @@ from core.database import get_db
 from models.regulation import Regulation
 from services.ingestion import ingest_regulation, parse_pdf
 from services.alert_engine import run_impact_analysis
+from services.intel_service import RegulationIntelligenceService
 from pydantic import BaseModel
 from typing import Optional
 from datetime import date
@@ -86,6 +87,28 @@ async def list_regulations(db: AsyncSession = Depends(get_db)):
         }
         for r in regulations
     ]
+
+@router.get("/{regulation_id}")
+async def get_regulation(regulation_id: str, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(Regulation).where(Regulation.id == regulation_id))
+    regulation = result.scalar_one_or_none()
+    if not regulation:
+        raise HTTPException(status_code=404, detail="Regulation not found")
+    return regulation
+
+@router.get("/{regulation_id}/intel")
+async def get_regulation_intel(regulation_id: str, db: AsyncSession = Depends(get_db)):
+    """Provides AI-powered intelligence for a regulation."""
+    result = await db.execute(select(Regulation).where(Regulation.id == regulation_id))
+    regulation = result.scalar_one_or_none()
+    if not regulation:
+        raise HTTPException(status_code=404, detail="Regulation not found")
+    
+    intel = await RegulationIntelligenceService.get_regulation_intel(
+        title=regulation.title,
+        text=regulation.raw_text or regulation.title
+    )
+    return intel
 
 @router.get("/{regulation_id}/similar")
 async def get_similar_regulations(regulation_id: str, top_k: int = 5, db: AsyncSession = Depends(get_db)):

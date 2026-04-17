@@ -12,9 +12,9 @@ from services.websocket_service import broadcast_alert
 logger = logging.getLogger(__name__)
 
 SIMILARITY_THRESHOLDS = {
-    "HIGH": 0.75,
-    "MEDIUM": 0.50,
-    "LOW": 0.30,
+    "HIGH": 0.65,      # Lowered from 0.75 to surface more critical matches
+    "MEDIUM": 0.45,    # Lowered from 0.50
+    "LOW": 0.25,       # Lowered from 0.30
 }
 
 async def run_impact_analysis(
@@ -34,7 +34,7 @@ async def run_impact_analysis(
     # Search specifically in policy vectors
     similar_policies = semantic_search(
         query_text=regulation.raw_text[:1000],   # use first 1000 chars as query
-        top_k=10,
+        top_k=20,                               # increased from 10
         source_type_filter="policy",
         score_threshold=SIMILARITY_THRESHOLDS["LOW"],
     )
@@ -50,11 +50,23 @@ async def run_impact_analysis(
 
     for policy_id_str, result in seen_policy_ids.items():
         score = result["score"]
-        impact_level = (
-            "HIGH" if score >= SIMILARITY_THRESHOLDS["HIGH"]
-            else "MEDIUM" if score >= SIMILARITY_THRESHOLDS["MEDIUM"]
-            else "LOW"
-        )
+        
+        # Priority-Aware Risk Logic
+        # If the regulation is high risk (>70) or priority, we boost the impact level
+        is_high_risk_reg = regulation.risk_level and regulation.risk_level > 70
+        
+        if score >= SIMILARITY_THRESHOLDS["HIGH"] or (score >= 0.55 and is_high_risk_reg):
+            impact_level = "HIGH"
+        elif score >= SIMILARITY_THRESHOLDS["MEDIUM"] or (score >= 0.35 and is_high_risk_reg):
+            impact_level = "MEDIUM"
+        else:
+            impact_level = "LOW"
+
+        # Verify policy exists in SQL before mapping
+        pol_check = await db.execute(select(Policy).where(Policy.id == policy_id_str))
+        if not pol_check.scalar_one_or_none():
+            logger.warning(f"⚠️ Policy {policy_id_str} in Qdrant but not in SQL. Skipping.")
+            continue
 
         # Check if mapping already exists
         existing = await db.execute(

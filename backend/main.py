@@ -39,6 +39,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+from services.uk_legis_service import sync_uk_feed
+from sqlalchemy.ext.asyncio import AsyncSession
+from core.database import get_db
+from fastapi import Depends
+
+@app.post("/api/regulations/sync/uk")
+async def trigger_uk_sync(db: AsyncSession = Depends(get_db)):
+    count = await sync_uk_feed(db, limit=10)
+    return {"status": "success", "count": count}
+
 app.include_router(regulations.router, prefix="/api/regulations", tags=["regulations"])
 app.include_router(policies.router, prefix="/api/policies", tags=["policies"])
 app.include_router(impact.router, prefix="/api/impact", tags=["impact"])

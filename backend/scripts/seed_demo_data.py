@@ -192,6 +192,46 @@ SAMPLE_POLICIES = [
         "category": "incident_management",
         "department": "Security",
     },
+    {
+        "title": "Financial Reporting and Audit Policy",
+        "text": """
+        This policy governs the accuracy and transparency of financial disclosures:
+        1. All revenue must be recognized in accordance with GAAP standards.
+        2. Monthly reconciliation of all corporate accounts is mandatory.
+        3. External audits will be conducted annually to verify balance sheet integrity.
+        4. Any discrepancy over $10,000 must be reported to the Audit Committee.
+        
+        Failure to comply may lead to regulatory sanctions and internal disciplinary action.
+        """,
+        "category": "financial",
+        "department": "Finance",
+    },
+    {
+        "title": "Recruitment and Equal Opportunity Policy",
+        "text": """
+        Our hiring practices ensure fairness and diversity:
+        1. All job descriptions must use gender-neutral language.
+        2. Background checks are required for all permanent employees.
+        3. Employee data (IDs, addresses) must be stored in encrypted HR systems.
+        4. Interviews must be conducted by at least two different team members to avoid bias.
+        
+        Personal data of unsuccessful candidates is deleted after 6 months.
+        """,
+        "category": "data_privacy",
+        "department": "HR",
+    },
+    {
+        "title": "Ethical Marketing and Advertising Policy",
+        "text": """
+        All marketing materials must be truthful and compliant:
+        1. No deceptive claims about product performance are permitted.
+        2. Email marketing must include a clear 'unsubscribe' option.
+        3. Customer testimonial data must be used only with written consent.
+        4. Competitive comparisons must be based on objective, third-party data.
+        """,
+        "category": "compliance",
+        "department": "Marketing",
+    },
 ]
 
 

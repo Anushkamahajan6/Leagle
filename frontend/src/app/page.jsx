@@ -13,10 +13,12 @@ const queryClient = new QueryClient({
     },
 })
 
+import RegulationList from './components/RegulationList'
+
 function AppContent() {
     const [tab, setTab] = useState('dashboard')
 
-    const tabs = ['dashboard', 'search', 'ingest', 'heatmap', 'alerts', 'impact']
+    const tabs = ['dashboard', 'regulations', 'search', 'ingest', 'heatmap', 'alerts', 'impact']
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -25,6 +27,34 @@ function AppContent() {
                     AI Compliance Management System
                 </h1>
             </header>
+            {/* UK Sync Trigger */}
+            <div className="flex justify-center mb-12">
+                <button
+                    onClick={async () => {
+                        try {
+                            const btn = document.getElementById('sync-uk-btn');
+                            btn.innerText = 'Syncing...';
+                            btn.disabled = true;
+                            // This would call an endpoint we'll create in main.py
+                            const resp = await fetch('http://localhost:8000/api/regulations/sync/uk', { method: 'POST' });
+                            const data = await resp.json();
+                            alert(`Sync Complete! Ingested ${data.count} new regulations.`);
+                        } catch (e) {
+                            alert('Sync failed. Please try again.');
+                        } finally {
+                            const btn = document.getElementById('sync-uk-btn');
+                            btn.innerText = 'Sync UK Live Feed';
+                            btn.disabled = false;
+                            window.location.reload();
+                        }
+                    }}
+                    id="sync-uk-btn"
+                    className="px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-full font-bold shadow-lg hover:shadow-indigo-500/50 transition-all active:scale-95"
+                >
+                    Sync UK Live Feed
+                </button>
+            </div>
+
             <nav className="bg-white border-b px-6">
                 <div className="flex gap-6">
                     {tabs.map((t) => (
@@ -43,6 +73,7 @@ function AppContent() {
             </nav>
             <main className="p-6">
                 {tab === 'dashboard' && <Dashboard />}
+                {tab === 'regulations' && <RegulationList />}
                 {tab === 'search' && <SemanticSearch />}
                 {tab === 'ingest' && <div className="p-6">Ingest Component Builder...</div>}
                 {tab === 'heatmap' && <RiskHeatmap />}
