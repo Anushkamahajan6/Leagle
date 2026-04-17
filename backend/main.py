@@ -1,5 +1,11 @@
 import logging
 from contextlib import asynccontextmanager
+from dotenv import load_dotenv
+import os
+
+# Load environment variables from .env file
+load_dotenv()
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from core.config import settings
@@ -7,7 +13,7 @@ from core.database import create_tables
 from services.qdrant_service import ensure_collection_exists
 
 # Import all routers
-from routers import regulations, policies, impact, alerts, rag
+from routers import regulations, policies, impact, alerts, rag, upload
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -43,7 +49,7 @@ app.include_router(policies.router, prefix="/api/policies", tags=["policies"])
 app.include_router(impact.router, prefix="/api/impact", tags=["impact"])
 app.include_router(alerts.router, prefix="/api/alerts", tags=["alerts"])
 app.include_router(rag.router, prefix="/api/rag", tags=["rag"])
-
+app.include_router(upload.router, prefix="/api/ingest", tags=["ingest"])
 
 @app.get("/health")
 async def health_check():

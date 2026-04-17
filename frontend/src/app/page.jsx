@@ -7,6 +7,7 @@ import SemanticSearch from './components/SemanticSearch'
 import Dashboard from './components/Dashboard'
 import AlertsPanel from './components/AlertsPanel'
 import RiskHeatmap from './components/RiskHeatmap'
+import Ingest from './components/Ingest'
 
 const queryClient = new QueryClient({
     defaultOptions: {
@@ -46,7 +47,7 @@ function AppContent() {
             <main className="p-6">
                 {tab === 'dashboard' && <Dashboard />}
                 {tab === 'search' && <SemanticSearch />}
-                {tab === 'ingest' && <div className="p-6">Ingest Component Builder...</div>}
+                {tab === 'ingest' && <div className="p-6"><Ingest/></div>}
                 {tab === 'heatmap' && <RiskHeatmap />}
                 {tab === 'alerts' && <AlertsPanel />}
                 {tab === 'impact' && <div className="p-6">Impact Component Builder...</div>}
