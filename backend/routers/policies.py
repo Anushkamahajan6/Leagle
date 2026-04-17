@@ -29,6 +29,23 @@ async def create_policy(
     )
     return {"id": str(policy.id), "title": policy.title}
 
+@router.get("/")
+async def list_policies(db: AsyncSession = Depends(get_db)):
+    """List all ingested policies."""
+    from sqlalchemy import select
+    result = await db.execute(select(Policy).order_by(Policy.title))
+    policies = result.scalars().all()
+    return [
+        {
+            "id": str(p.id),
+            "title": p.title,
+            "department": p.department,
+            "owner": p.owner,
+            "created_at": p.created_at.isoformat() if p.created_at else None
+        }
+        for p in policies
+    ]
+
 @router.post("/{policy_id}/compliance-check")
 async def compliance_check(policy_id: str, db: AsyncSession = Depends(get_db)):
     """
