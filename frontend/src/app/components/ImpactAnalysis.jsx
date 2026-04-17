@@ -66,14 +66,14 @@ export default function ImpactAnalysis() {
                     <Target className="text-leagle-accent" size={20} />
                     <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-leagle-accent">Impact Intelligence</h2>
                 </div>
-                <h1 className="text-4xl font-black text-white tracking-tight">Cross-Reference Engine</h1>
-                <p className="text-gray-400 font-medium">Select a direct regulation and a specific policy to analyze semantic friction and compliance gaps.</p>
+                <h1 className="text-4xl font-serif italic text-white tracking-tight">Cross-Reference Engine</h1>
+                <p className="text-gray-500 font-medium uppercase text-[10px] tracking-widest">Select a direct regulation and a specific policy to analyze semantic friction.</p>
             </header>
 
             {/* Comparison Hub (NEW HORIZONTAL LAYOUT) */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
                 {/* Regulation Selector Card */}
-                <div className={`glass-card p-6 transition-all duration-500 border-leagle-accent/10 flex flex-col ${selectedReg ? 'bg-leagle-accent/5' : 'bg-white/2'}`}>
+                <div className={`glass-card p-6 transition-all duration-500 border-leagle-accent/10 flex flex-col rounded-sm ${selectedReg ? 'bg-leagle-accent/5' : 'bg-white/2'}`}>
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-3">
                             <Shield className="text-leagle-accent" size={20} />
@@ -106,7 +106,7 @@ export default function ImpactAnalysis() {
                 </div>
 
                 {/* Policy Selector Card */}
-                <div className={`glass-card p-6 transition-all duration-500 border-indigo-500/10 flex flex-col ${selectedPolicy ? 'bg-indigo-500/5' : 'bg-white/2'}`}>
+                <div className={`glass-card p-6 transition-all duration-500 border-indigo-500/10 flex flex-col rounded-sm ${selectedPolicy ? 'bg-indigo-500/5' : 'bg-white/2'}`}>
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-3">
                             <FileText className="text-indigo-400" size={20} />
@@ -144,8 +144,8 @@ export default function ImpactAnalysis() {
                 <button
                     onClick={handleRunAnalysis}
                     disabled={!selectedReg || !selectedPolicy || loading}
-                    className={`px-12 py-4 rounded-2xl font-black text-sm tracking-widest uppercase transition-all flex items-center gap-3 shadow-xl ${selectedReg && selectedPolicy && !loading
-                        ? 'bg-leagle-accent text-white hover:scale-[1.05] shadow-leagle-accent/40 active:scale-95'
+                    className={`px-12 py-4 rounded-sm font-black text-[10px] tracking-[0.2em] uppercase transition-all flex items-center gap-3 shadow-xl ${selectedReg && selectedPolicy && !loading
+                        ? 'bg-leagle-accent text-black hover:bg-white active:scale-95'
                         : 'bg-white/5 text-gray-600 border border-white/5 cursor-not-allowed'
                         }`}
                 >
@@ -176,17 +176,17 @@ export default function ImpactAnalysis() {
                     {result ? (
                         <div className="space-y-6 animate-in fade-in duration-700 h-full flex flex-col">
                             {/* Executive Verdict Card */}
-                            <div className="glass-card p-6 bg-gradient-to-br from-leagle-accent/5 to-transparent border-leagle-accent/20 space-y-4">
+                            <div className="glass-card p-6 border-leagle-accent/20 space-y-4 rounded-sm">
                                 <div className="flex justify-between items-center">
-                                    <h3 className="text-lg font-black text-white tracking-tight uppercase">Strategic Verdict</h3>
-                                    <div className={`px-3 py-1 rounded-lg text-[9px] font-black border tracking-widest uppercase ${result.impact_level === 'HIGH' ? 'bg-red-500/20 text-red-400 border-red-500/30' :
+                                    <h3 className="text-lg font-serif text-white tracking-tight uppercase italic underline decoration-leagle-accent/30 underline-offset-8">Strategic Verdict</h3>
+                                    <div className={`px-3 py-1 rounded-sm text-[9px] font-black border tracking-widest uppercase ${result.impact_level === 'HIGH' ? 'bg-red-500/20 text-red-400 border-red-500/30' :
                                         result.impact_level === 'MEDIUM' ? 'bg-orange-500/20 text-orange-400 border-orange-500/30' :
                                             'bg-green-500/20 text-green-400 border-green-500/30'
                                         }`}>
                                         {result.impact_level} IMPACT
                                     </div>
                                 </div>
-                                <p className="text-sm text-gray-300 leading-relaxed italic font-medium">
+                                <p className="text-sm text-gray-300 leading-relaxed font-serif italic text-lg border-l-2 border-leagle-accent/30 pl-4 py-2 bg-white/2">
                                     &ldquo;{result.reasoning}&rdquo;
                                 </p>
                                 <div className="grid grid-cols-2 gap-3">
