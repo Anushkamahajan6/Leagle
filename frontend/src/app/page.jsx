@@ -2,7 +2,6 @@
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useState } from 'react'
-import { useWebSocket } from './hooks/useWebSocket'
 import SemanticSearch from './components/SemanticSearch'
 import Dashboard from './components/Dashboard'
 import AlertsPanel from './components/AlertsPanel'
@@ -15,7 +14,6 @@ const queryClient = new QueryClient({
 })
 
 function AppContent() {
-    useWebSocket()  // Connect WebSocket globally
     const [tab, setTab] = useState('dashboard')
 
     const tabs = ['dashboard', 'search', 'ingest', 'heatmap', 'alerts', 'impact']

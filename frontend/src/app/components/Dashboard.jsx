@@ -1,3 +1,5 @@
+"use client"
+
 import { useState, useEffect } from 'react'
 import { getRegulations, getAlerts, getHeatmap } from '../api/client'
 import { AlertTriangle, FileText, CheckCircle, Clock } from 'lucide-react'

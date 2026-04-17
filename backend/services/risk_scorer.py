@@ -67,10 +67,11 @@ def _rule_based_score(text: str) -> int:
 
 def _load_ml_model():
     """Load trained sklearn model if it exists."""
-    model_path = "models/risk_scorer.pkl"
+    # Updated to point to our custom trained model from Phase 3
+    model_path = "/home/perseuskyogre/Projects/CodeWizards/backend/ml/risk_scorer_v1.joblib"
     if os.path.exists(model_path):
         import joblib
-        logger.info("Loading ML risk scorer model")
+        logger.info(f"✅ Loading custom ML Risk Scorer from {model_path}")
         return joblib.load(model_path)
     return None
 

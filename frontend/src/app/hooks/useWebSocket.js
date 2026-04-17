@@ -1,22 +1,26 @@
+"use client"
+
 import { useEffect } from 'react'
+import { io } from 'socket.io-client'
 import { useAppStore } from '../store/appStore'
 
 export function useWebSocket() {
     const addAlerts = useAppStore((s) => s.addAlerts)
 
     useEffect(() => {
-        const ws = new WebSocket('ws://localhost:8000/api/alerts/ws')
+        // Connect to Socket.io gateway
+        const socket = io('http://localhost:8000', {
+            path: '/ws/socket.io'
+        })
 
-        ws.onmessage = (event) => {
-            const data = JSON.parse(event.data)
-            if (data.type === 'alerts') {
-                addAlerts(data.data)
-            }
-        }
+        socket.on('new_alert', (data) => {
+            console.log('📣 New Real-time Alert:', data)
+            addAlerts([data])
+        })
 
-        ws.onerror = (e) => console.error('WebSocket error:', e)
-        ws.onclose = () => console.log('WebSocket closed')
+        socket.on('connect', () => console.log('✅ Connected to Real-time Feed'))
+        socket.on('disconnect', () => console.log('❌ Disconnected from Feed'))
 
-        return () => ws.close()
+        return () => socket.disconnect()
     }, [addAlerts])
 }

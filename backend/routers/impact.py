@@ -72,3 +72,30 @@ async def get_risk_heatmap(db: AsyncSession = Depends(get_db)):
         heatmap[dept][cat] = max(heatmap[dept].get(cat, 0), score)
 
     return {"heatmap": heatmap, "total_open_impacts": len(rows)}
+@router.get("/details")
+async def get_impact_details(dept: str, cat: str, db: AsyncSession = Depends(get_db)):
+    """Returns the list of policies and regulations that form a specific heatmap cell."""
+    result = await db.execute(
+        select(ImpactMapping, Policy, Regulation)
+        .join(Policy, ImpactMapping.policy_id == Policy.id)
+        .join(Regulation, ImpactMapping.regulation_id == Regulation.id)
+        .where(
+            Policy.department == dept,
+            Regulation.category == cat,
+            ImpactMapping.status == "OPEN"
+        )
+    )
+    rows = result.all()
+
+    details = []
+    for mapping, policy, regulation in rows:
+        details.append({
+            "mapping_id": str(mapping.id),
+            "policy_id": str(policy.id),
+            "policy_title": policy.title,
+            "regulation_id": str(regulation.id),
+            "regulation_title": regulation.title,
+            "impact_level": mapping.impact_level,
+            "summary": mapping.llm_summary or f"Semantic overlap detected between {policy.title} and {regulation.title}."
+        })
+    return details

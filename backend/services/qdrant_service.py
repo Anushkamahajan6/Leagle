@@ -185,6 +185,7 @@ def semantic_search(
     top_k: int = 5,
     score_threshold: float = 0.3,
     category_filter: str | None = None,
+    source_type_filter: str | None = None,
 ) -> List[Dict[str, Any]]:
     """
     Search for semantically similar documents in Qdrant.
@@ -207,11 +208,16 @@ def semantic_search(
     query_vector = model.encode(query_text).tolist()
     
     # Optional filter
+    must_conditions = []
     query_filter = None
     if category_filter:
-        query_filter = Filter(
-            must=[FieldCondition(key="category", match=MatchValue(value=category_filter))]
-        )
+        must_conditions.append(FieldCondition(key="category", match=MatchValue(value=category_filter)))
+    
+    if source_type_filter:
+        must_conditions.append(FieldCondition(key="source_type", match=MatchValue(value=source_type_filter)))
+    
+    if must_conditions:
+        query_filter = Filter(must=must_conditions)
     
     # Search
     response = client.query_points(
@@ -232,6 +238,7 @@ def semantic_search(
             "title": hit.payload.get("title", ""),
             "category": hit.payload.get("category", ""),
             "regulation_id": hit.payload.get("regulation_id", ""),
+            "policy_id": hit.payload.get("policy_id", ""),
             "source_type": hit.payload.get("source_type", ""),
             "storage_path": hit.payload.get("storage_path"),
         }

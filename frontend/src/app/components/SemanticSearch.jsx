@@ -1,3 +1,5 @@
+"use client"
+
 import { useState } from 'react'
 import { askQuestion } from '../api/client'
 import { Search, Loader2, ShieldCheck, Zap } from 'lucide-react'
@@ -70,7 +72,7 @@ export default function SemanticSearch() {
                                 <div className="flex items-center gap-2 bg-blue-50 px-3 py-1 rounded-full border border-blue-100 shadow-sm animate-in zoom-in duration-700">
                                     <span className="text-[10px] font-bold uppercase text-blue-400">Local ML Anchor:</span>
                                     <span className={`text-[10px] font-black uppercase ${result.local_ml_risk === 'High' ? 'text-red-500' :
-                                            result.local_ml_risk === 'Medium' ? 'text-orange-500' : 'text-green-500'
+                                        result.local_ml_risk === 'Medium' ? 'text-orange-500' : 'text-green-500'
                                         }`}>
                                         {result.local_ml_risk} Priority
                                     </span>

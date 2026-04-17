@@ -8,6 +8,7 @@ from services.qdrant_service import ensure_collection_exists
 
 # Import all routers
 from routers import regulations, policies, impact, alerts, rag
+from services.websocket_service import sio
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -44,11 +45,11 @@ app.include_router(impact.router, prefix="/api/impact", tags=["impact"])
 app.include_router(alerts.router, prefix="/api/alerts", tags=["alerts"])
 app.include_router(rag.router, prefix="/api/rag", tags=["rag"])
 
-
-@app.get("/health")
-async def health_check():
-    return {"status": "ok", "version": "1.0.0"}
+# Wrap the FastAPI app with Socket.io ASGIApp
+import socketio
+socket_app = socketio.ASGIApp(sio, other_asgi_app=app, socketio_path='/ws/socket.io')
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    # Use the socket_app as the entry point since it wraps the FastAPI app
+    uvicorn.run("main:socket_app", host="0.0.0.0", port=8000, reload=True)

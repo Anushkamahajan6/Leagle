@@ -1,76 +1,97 @@
+"use client"
+
 import { useAppStore } from '../store/appStore'
-import { acknowledgeAlert } from '../api/client'
-import { AlertCircle, CheckCircle } from 'lucide-react'
+import { Bell, BellOff, AlertTriangle, AlertCircle, Info, ChevronRight, Activity } from 'lucide-react'
 
 export default function AlertsPanel() {
-    const { alerts, markRead } = useAppStore()
+    const { alerts, unreadCount, markRead } = useAppStore()
 
-    // Auto clear unread count when opening the tab
-    import('react').then(({ useEffect }) => {
-        useEffect(() => { markRead() }, [markRead])
-    })
+    const getIcon = (severity) => {
+        switch (severity) {
+            case 'HIGH': return <AlertTriangle className="text-red-500" size={18} />
+            case 'MEDIUM': return <AlertCircle className="text-amber-500" size={18} />
+            default: return <Info className="text-blue-500" size={18} />
+        }
+    }
 
-    const handleAcknowledge = async (id) => {
-        try {
-            await acknowledgeAlert(id)
-            // Optimistically update the store list status to acknowledged
-            useAppStore.setState(state => ({
-                alerts: state.alerts.map(a => a.id === id ? { ...a, acknowledged: true } : a)
-            }))
-        } catch (e) {
-            console.error('Failed to acknowledge alert', e)
+    const getBg = (severity) => {
+        switch (severity) {
+            case 'HIGH': return 'bg-red-500/5 border-red-200/20'
+            case 'MEDIUM': return 'bg-amber-500/5 border-amber-200/20'
+            default: return 'bg-blue-500/5 border-blue-200/20'
         }
     }
 
     return (
-        <div className="p-6 max-w-4xl mx-auto">
-            <h2 className="text-2xl font-bold mb-6">Real-Time Alerts Feed</h2>
+        <div className="glass rounded-[2rem] border border-blue-100/20 overflow-hidden shadow-2xl animate-in fade-in slide-in-from-right-12 duration-700 h-full">
+            <div className="p-6 bg-gradient-to-r from-blue-600/10 to-transparent flex justify-between items-center border-b border-blue-100/10">
+                <div className="flex items-center gap-3">
+                    <div className="relative">
+                        <Bell className="text-blue-600" size={24} />
+                        {unreadCount > 0 && (
+                            <span className="absolute -top-1 -right-1 block h-3 w-3 rounded-full bg-red-500 ring-4 ring-white shadow-lg animate-bounce"></span>
+                        )}
+                    </div>
+                    <div>
+                        <h2 className="text-lg font-black text-gray-800 tracking-tight">Active Monitoring</h2>
+                        <p className="text-[10px] font-bold text-blue-500 uppercase tracking-widest">Live Compliance Stream</p>
+                    </div>
+                </div>
 
-            {alerts.length === 0 ? (
-                <p className="text-gray-500">No recent alerts.</p>
-            ) : (
-                <div className="space-y-4">
-                    {alerts.map(alert => (
-                        <div
-                            key={alert.id}
-                            className={`p-4 rounded-xl border flex items-start justify-between gap-4 transition-colors ${!alert.acknowledged && alert.severity === 'HIGH' ? 'bg-red-50 border-red-200'
-                                    : !alert.acknowledged && alert.severity === 'MEDIUM' ? 'bg-yellow-50 border-yellow-200'
-                                        : 'bg-white border-gray-200'
-                                }`}
-                        >
-                            <div className="flex items-start gap-3">
-                                <div className={`mt-0.5 ${alert.severity === 'HIGH' ? 'text-red-600' : 'text-yellow-600'
-                                    }`}>
-                                    <AlertCircle size={20} />
-                                </div>
-                                <div>
-                                    <div className="flex items-center gap-2 mb-1">
-                                        <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${alert.severity === 'HIGH' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'
-                                            }`}>
-                                            {alert.severity} RISK
-                                        </span>
+                {unreadCount > 0 && (
+                    <button
+                        onClick={markRead}
+                        className="text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-blue-600 transition-colors bg-gray-50 px-3 py-1.5 rounded-full"
+                    >
+                        Clear Markers
+                    </button>
+                )}
+            </div>
+
+            <div className="max-h-[600px] overflow-y-auto custom-scrollbar">
+                {alerts.length === 0 ? (
+                    <div className="p-12 text-center">
+                        <BellOff className="mx-auto text-gray-200 mb-4" size={48} />
+                        <p className="text-gray-400 font-medium text-sm">No recent alerts. System optimized.</p>
+                    </div>
+                ) : (
+                    <div className="divide-y divide-gray-100/50">
+                        {alerts.map((alert, idx) => (
+                            <div
+                                key={alert.id || idx}
+                                className={`p-5 flex gap-4 transition-all hover:bg-white/40 group ${getBg(alert.severity)}`}
+                            >
+                                <div className="mt-1">{getIcon(alert.severity)}</div>
+                                <div className="flex-1">
+                                    <div className="flex justify-between items-start mb-1">
+                                        <p className="text-[10px] font-black tracking-widest text-gray-400 uppercase">
+                                            {alert.severity} PRIORITY
+                                        </p>
+                                        <span className="text-[10px] text-gray-300 font-medium">Just now</span>
                                     </div>
-                                    <p className="text-gray-900 font-medium">{alert.message}</p>
+                                    <p className="text-sm text-gray-700 font-medium leading-relaxed group-hover:text-gray-900 transition-colors">
+                                        {alert.message}
+                                    </p>
+                                    <div className="mt-3 flex items-center gap-2">
+                                        <div className="px-2 py-0.5 rounded text-[9px] font-bold bg-blue-100/50 text-blue-600 border border-blue-200/30">
+                                            {alert.regulation_title?.slice(0, 30) || 'Compliance Update'}...
+                                        </div>
+                                        <ChevronRight size={12} className="text-gray-300" />
+                                    </div>
                                 </div>
                             </div>
+                        ))}
+                    </div>
+                )}
+            </div>
 
-                            {!alert.acknowledged ? (
-                                <button
-                                    onClick={() => handleAcknowledge(alert.id)}
-                                    className="px-3 py-1.5 text-sm font-medium border rounded-lg hover:bg-gray-50 text-gray-700"
-                                >
-                                    Confirm View
-                                </button>
-                            ) : (
-                                <div className="flex items-center text-green-600 gap-1 mt-1">
-                                    <CheckCircle size={16} />
-                                    <span className="text-xs font-medium">Acknowledged</span>
-                                </div>
-                            )}
-                        </div>
-                    ))}
+            <div className="p-4 bg-gray-50/50 border-t border-gray-100 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Real-time Connection: Open</span>
                 </div>
-            )}
+                <Activity size={14} className="text-blue-200" />
+            </div>
         </div>
     )
 }

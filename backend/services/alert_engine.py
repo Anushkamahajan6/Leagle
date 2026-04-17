@@ -7,6 +7,7 @@ from models.impact import ImpactMapping
 from models.alert import Alert
 from services.qdrant_service import semantic_search
 from services.risk_scorer import score_to_level
+from services.websocket_service import broadcast_alert
 
 logger = logging.getLogger(__name__)
 
@@ -80,6 +81,7 @@ async def run_impact_analysis(
             alert = Alert(
                 regulation_id=regulation.id,
                 severity=impact_level,
+                title=f"New Compliance Risk: {regulation.title}",
                 message=(
                     f"{impact_level} impact detected: Regulation '{regulation.title}' "
                     f"affects policy (similarity: {score:.2f}). "
@@ -87,6 +89,14 @@ async def run_impact_analysis(
                 ),
             )
             db.add(alert)
+            
+            # Broadcast real-time alert via WebSocket
+            await broadcast_alert({
+                "id": str(alert.id) if hasattr(alert, 'id') else "new",
+                "severity": alert.severity,
+                "message": alert.message,
+                "regulation_title": regulation.title
+            })
 
     await db.commit()
     logger.info(f"Created {len(mappings_created)} impact mappings for: {regulation.title}")
