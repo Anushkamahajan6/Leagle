@@ -40,7 +40,8 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:5173", 
         "http://localhost:3000",
-        "https://frontend-sepia-three-46.vercel.app"
+        "https://frontend-sepia-three-46.vercel.app",
+        "https://leagle.qzz.io"
     ],
     allow_credentials=True,
     allow_methods=["*"],
