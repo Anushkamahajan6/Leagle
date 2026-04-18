@@ -29,15 +29,30 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="AI Compliance Management System",
+    title="Leagle AI Institutional Protocol",
     version="1.0.0",
-    description="Regulatory intelligence platform powered by Qdrant + LLM RAG",
+    description="Institutional-grade regulatory intelligence engine",
     lifespan=lifespan,
 )
 
+@app.get("/")
+async def root():
+    return {
+        "message": "Welcome to Leagle AI Institutional Protocol",
+        "status": "active",
+        "documentation": "/docs",
+        "version": "1.0.0",
+        "neural_engine": "online"
+    }
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000"],
+    allow_origins=[
+        "http://localhost:5173", 
+        "http://localhost:3000",
+        "https://frontend-sepia-three-46.vercel.app",
+        "https://leagle.qzz.io"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

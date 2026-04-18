@@ -25,7 +25,8 @@ export default function Navigation() {
         setSyncLoading(true)
         setSyncMessage('Sync in progress...')
         try {
-            const resp = await fetch('http://localhost:8000/api/regulations/sync/uk', { method: 'POST' })
+            const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+            const resp = await fetch(`${API_BASE_URL}/api/regulations/sync/uk`, { method: 'POST' })
             const data = await resp.json()
             setSyncMessage(`Sync complete: ${data.count} regulations added.`)
             window.location.reload()
