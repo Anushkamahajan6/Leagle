@@ -32,9 +32,10 @@ export default function Ingest() {
     formData.append("file", file);
 
     try {
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
       const url = debug
-        ? "http://localhost:8000/api/ingest/upload?debug=true"
-        : "http://localhost:8000/api/ingest/upload";
+        ? `${API_BASE_URL}/api/ingest/upload?debug=true`
+        : `${API_BASE_URL}/api/ingest/upload`;
 
       const res = await fetch(url, {
         method: "POST",
@@ -62,7 +63,8 @@ export default function Ingest() {
     setAnalysisReport(null);
 
     try {
-      const res = await fetch(`http://localhost:8000/api/analytics/compare/${result.document_id}`, {
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+      const res = await fetch(`${API_BASE_URL}/api/analytics/compare/${result.document_id}`, {
         method: "POST",
       });
 

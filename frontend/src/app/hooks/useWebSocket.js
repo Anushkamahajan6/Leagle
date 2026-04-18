@@ -20,8 +20,10 @@ export function useWebSocket() {
         }
         fetchInitial()
 
+        const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+
         // Connect to Socket.io gateway
-        const socket = io('http://localhost:8000', {
+        const socket = io(API_BASE_URL, {
             path: '/ws/socket.io'
         })
 

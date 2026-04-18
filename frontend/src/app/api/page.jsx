@@ -5,7 +5,8 @@ import { Terminal, BookOpen, Key, Link as LinkIcon, Database, Shield, Zap, Check
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const API_BASE = 'http://localhost:8000/api/v1/neural';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const API_BASE = `${API_BASE_URL}/api/v1/neural`;
 
 export default function APIPage() {
     const [keys, setKeys] = useState([]);
