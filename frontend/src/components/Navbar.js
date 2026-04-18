@@ -23,39 +23,36 @@ export default function Navbar() {
           <div className="flex items-center space-x-8">
             <Link
               href="/"
-              className={`px-3 py-2 text-sm font-medium rounded-md ${
-                isActive("/") && pathname === "/"
+              className={`px-3 py-2 text-sm font-medium rounded-md ${isActive("/") && pathname === "/"
                   ? "bg-slate-700 text-white"
                   : "hover:bg-slate-700"
-              }`}
+                }`}
             >
               Dashboard
             </Link>
 
             <Link
               href="/regulations"
-              className={`px-3 py-2 text-sm font-medium rounded-md ${
-                isActive("/regulations")
+              className={`px-3 py-2 text-sm font-medium rounded-md ${isActive("/regulations")
                   ? "bg-slate-700 text-white"
                   : "hover:bg-slate-700"
-              }`}
+                }`}
             >
               Regulations
             </Link>
 
             <Link
               href="/policies"
-              className={`px-3 py-2 text-sm font-medium rounded-md ${
-                isActive("/policies")
+              className={`px-3 py-2 text-sm font-medium rounded-md ${isActive("/policies")
                   ? "bg-slate-700 text-white"
                   : "hover:bg-slate-700"
-              }`}
+                }`}
             >
               Policies
             </Link>
 
             <a
-              href="http://localhost:8000/docs"
+              href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/docs`}
               target="_blank"
               rel="noopener noreferrer"
               className="px-3 py-2 text-sm font-medium rounded-md hover:bg-slate-700"
