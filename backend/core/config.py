@@ -8,10 +8,15 @@ class Settings(BaseSettings):
     
     # Database
     database_url: str = "postgresql+asyncpg://user:password@localhost/compliance_db"
-    
+    twilio_account_sid: str
+    twilio_auth_token: str
+    twilio_whatsapp_number: str
     # Qdrant
     qdrant_host: str = "localhost"
     qdrant_port: int = 6333
+    qdrant_url: str | None = None
+    qdrant_api_key: str | None = None
+    nvidia_api_key: str = ""
     qdrant_collection: str = "regulations_v1"
     
     # Redis

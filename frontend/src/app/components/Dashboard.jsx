@@ -1,12 +1,22 @@
 "use client"
 
 import { useState, useEffect } from 'react'
-import { getRegulations, getAlerts, getHeatmap } from '../api/client'
-import { AlertTriangle, FileText, CheckCircle, Clock } from 'lucide-react'
+import Link from 'next/link'
+import { getRegulations, getAlerts } from '../api/client'
+import { Shield, TrendingUp, AlertTriangle, Scale, Upload, Search, Target, Bell } from 'lucide-react'
 
 export default function Dashboard() {
     const [stats, setStats] = useState({ regs: 0, alerts: 0, highRisk: 0 })
     const [loading, setLoading] = useState(true)
+    const [greeting, setGreeting] = useState('Morning Briefing')
+
+    useEffect(() => {
+        const hour = new Date().getHours()
+        if (hour >= 5 && hour < 12) setGreeting('Morning Briefing')
+        else if (hour >= 12 && hour < 17) setGreeting('Afternoon Briefing')
+        else if (hour >= 17 && hour < 21) setGreeting('Evening Briefing')
+        else setGreeting('Night Briefing')
+    }, [])
 
     useEffect(() => {
         async function loadData() {
@@ -32,58 +42,97 @@ export default function Dashboard() {
         loadData()
     }, [])
 
-    if (loading) return <div className="p-6">Loading dashboard...</div>
+    if (loading) return (
+        <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
+            <div className="w-12 h-12 border-4 border-leagle-accent border-t-transparent rounded-full animate-spin"></div>
+            <p className="text-leagle-accent font-bold animate-pulse">Loading compliance overview...</p>
+        </div>
+    )
 
     return (
-        <div className="p-6 max-w-6xl mx-auto space-y-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Overview</h2>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div className="bg-white p-6 rounded-xl border shadow-sm flex items-center justify-between">
+        <div className="max-w-7xl mx-auto space-y-12">
+            <header className="border-b border-white/5 pb-8">
+                <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                     <div>
-                        <p className="text-sm text-gray-500 font-medium">Monitored Regulations</p>
-                        <p className="text-3xl font-bold text-gray-900 mt-2">{stats.regs}</p>
+                        <h1 className="text-4xl font-serif text-white tracking-tight italic">{greeting}</h1>
+                        <p className="text-gray-500 mt-2 font-medium tracking-wide uppercase text-[10px]">Operational Intelligence Hub • Leagle Central Command</p>
                     </div>
-                    <div className="p-3 bg-blue-50 text-blue-600 rounded-lg">
-                        <FileText size={24} />
+                    <div className="flex items-center gap-3 px-4 py-1.5 border border-leagle-accent/30 bg-leagle-accent/5 rounded-sm">
+                        <div className="w-1.5 h-1.5 rounded-full bg-leagle-accent animate-pulse" />
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-leagle-accent">System Active</span>
                     </div>
                 </div>
 
-                <div className="bg-white p-6 rounded-xl border shadow-sm flex items-center justify-between">
-                    <div>
-                        <p className="text-sm text-gray-500 font-medium">Total Alerts</p>
-                        <p className="text-3xl font-bold text-gray-900 mt-2">{stats.alerts}</p>
-                    </div>
-                    <div className="p-3 bg-yellow-50 text-yellow-600 rounded-lg">
-                        <AlertTriangle size={24} />
-                    </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mt-12">
+                    {[
+                        { label: "Regulation Portfolio", value: stats.regs, icon: <img src="/logo.png" alt="L" className="w-4 h-4" /> },
+                        { label: "Active Directives", value: stats.alerts, icon: <TrendingUp size={16} /> },
+                        { label: "Critical Risk Gaps", value: stats.highRisk, icon: <AlertTriangle size={16} />, highlight: true },
+                    ].map((stat, i) => (
+                        <div key={i} className="space-y-2 border-l border-white/10 pl-6 group">
+                            <div className={`flex items-center gap-2 text-[10px] font-black uppercase tracking-widest ${stat.highlight ? 'text-red-500' : 'text-gray-500'}`}>
+                                {stat.icon}
+                                {stat.label}
+                            </div>
+                            <p className="text-5xl font-serif text-white group-hover:text-leagle-accent transition-colors">{stat.value}</p>
+                        </div>
+                    ))}
+                </div>
+            </header>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+                <div className="lg:col-span-2 space-y-10">
+                    <section className="space-y-6">
+                        <h3 className="text-xs font-black text-gray-400 uppercase tracking-[0.3em] flex items-center gap-3">
+                            <span className="w-8 h-[1px] bg-leagle-accent/30" />
+                            Workflow Execution
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-px bg-white/5 border border-white/5 p-px">
+                            {[
+                                { label: "Jurisdictional Library", sub: "Browse & Refine Regulations", icon: <Scale size={18} />, path: "/regulations" },
+                                { label: "Diagnostic Ingest", sub: "Upload Audit Artifacts", icon: <Upload size={18} />, path: "/ingest" },
+                                { label: "Semantic Inquiry", sub: "Neural Case Research", icon: <Search size={18} />, path: "/search" },
+                                { label: "Impact Analysis", sub: "Cross-Reference Comparison", icon: <Target size={18} />, path: "/impact" },
+                            ].map((action, i) => (
+                                <Link key={i} href={action.path} className="p-8 bg-leagle-bg hover:bg-white/2 transition-all group border-transparent hover:border-leagle-accent/20 flex flex-col gap-4">
+                                    <div className="text-leagle-accent opacity-50 group-hover:opacity-100 transition-opacity">{action.icon}</div>
+                                    <div>
+                                        <p className="font-serif text-xl text-white group-hover:text-leagle-accent transition-colors">{action.label}</p>
+                                        <p className="text-[10px] text-gray-500 uppercase tracking-widest font-black mt-1">{action.sub}</p>
+                                    </div>
+                                </Link>
+                            ))}
+                        </div>
+                    </section>
                 </div>
 
-                <div className="bg-white p-6 rounded-xl border border-red-100 shadow-sm flex items-center justify-between">
-                    <div>
-                        <p className="text-sm text-gray-500 font-medium whitespace-nowrap">Unacknowledged High Risk</p>
-                        <p className="text-3xl font-bold text-red-600 mt-2">{stats.highRisk}</p>
-                    </div>
-                    <div className="p-3 bg-red-50 text-red-600 rounded-lg">
-                        <AlertTriangle size={24} />
-                    </div>
-                </div>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="bg-white rounded-xl shadow-sm border p-6">
-                    <h3 className="text-lg font-bold mb-4">Quick Actions</h3>
-                    <div className="space-y-3">
-                        <button className="w-full text-left px-4 py-3 bg-gray-50 hover:bg-gray-100 rounded-lg font-medium text-sm border">
-                            + Add New Regulation
-                        </button>
-                        <button className="w-full text-left px-4 py-3 bg-gray-50 hover:bg-gray-100 rounded-lg font-medium text-sm border">
-                            + Add Internal Policy
-                        </button>
-                        <button className="w-full text-left px-4 py-3 bg-gray-50 hover:bg-gray-100 rounded-lg font-medium text-sm border text-blue-600">
-                            Run Compliance Check
-                        </button>
-                    </div>
+                <div className="lg:col-span-1 space-y-10">
+                    <section className="space-y-6">
+                        <h3 className="text-xs font-black text-gray-400 uppercase tracking-[0.3em] flex items-center gap-3">
+                            <span className="w-8 h-[1px] bg-red-500/30" />
+                            Priority Queue
+                        </h3>
+                        <div className="glass-card border-none bg-white/2 p-8 space-y-6">
+                            <div className="w-12 h-12 border border-leagle-accent/20 bg-leagle-accent/5 flex items-center justify-center text-leagle-accent">
+                                <Bell size={20} />
+                            </div>
+                            <div className="space-y-2">
+                                <h4 className="text-lg font-serif text-white italic">
+                                    {stats.highRisk > 0 ? 'Alert Follow-up' : 'System Verification'}
+                                </h4>
+                                <p className="text-sm text-gray-500 leading-relaxed font-medium">
+                                    {stats.highRisk > 0 ? (
+                                        <>There are currently <span className="text-white font-black">{stats.highRisk}</span> high-priority alerts awaiting executive acknowledgment.</>
+                                    ) : (
+                                        <>All protocols are stable. No active high-priority alerts detected in current cycle.</>
+                                    )}
+                                </p>
+                            </div>
+                            <Link href="/alerts" className="block w-full py-3 border border-leagle-accent/50 text-leagle-accent text-[10px] font-black uppercase tracking-[0.2em] text-center hover:bg-leagle-accent hover:text-black transition-all">
+                                {stats.highRisk > 0 ? 'Review Protocols' : 'Audit History'}
+                            </Link>
+                        </div>
+                    </section>
                 </div>
             </div>
         </div>

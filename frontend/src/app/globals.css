@@ -1,79 +1,223 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --leagle-bg: #050709;
+    --leagle-navy: #0F141A;
+    --leagle-accent: #C5A059;
+    --leagle-gold: #C5A059;
+    --leagle-glass: rgba(10, 15, 20, 0.9);
+    --leagle-border: rgba(197, 160, 89, 0.15);
+
+    color-scheme: dark;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    background-color: var(--leagle-bg);
+    color: #f3f4f6;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    font-family: 'Inter', sans-serif;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: 'Outfit', sans-serif;
+  }
+
+  @keyframes cm-pulse {
+    0%,
+    100% {
+      opacity: 1;
+    }
+
+    50% {
+      opacity: 0.35;
+    }
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+@layer components {
+  .glass-card {
+    background-color: var(--leagle-glass);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid var(--leagle-border);
+    border-radius: 0.125rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  }
+
+  .text-gradient {
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    background-image: linear-gradient(to right, var(--leagle-accent), #ffffff);
+  }
+
+  .btn-premium {
+    padding: 0.625rem 1.5rem;
+    background-color: var(--leagle-accent);
+    color: #000;
+    font-weight: 700;
+    border-radius: 0.125rem;
+    transition: all 0.2s;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(197, 160, 89, 0.15);
+  }
+
+  .btn-premium:hover {
+    box-shadow: 0 6px 16px rgba(197, 160, 89, 0.25);
+    transform: translateY(-1px);
+  }
+
+  .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    border-radius: 0.125rem;
+    transition: all 0.2s;
+    font-weight: 500;
+    color: #9ca3af;
+    text-decoration: none;
+  }
+
+  .nav-link:hover {
+    background-color: rgba(197, 160, 89, 0.05);
+    color: white;
+  }
+
+  .nav-link-active {
+    background-color: rgba(197, 160, 89, 0.08);
+    color: #f3f4f6;
+  }
+
+  .cm-shell-bg {
+    background-color: var(--leagle-bg);
+  }
+
+  .cm-shell-header {
+    height: 68px;
+    background: rgba(10, 15, 20, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--leagle-border);
+  }
+
+  .cm-shell-frame {
+    display: contents;
+    /* Removed frame logic */
+  }
+
+  /* Legacy styles removed for Institutional Premium */
+
+  .cm-nav-item {
+    width: 100%;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    background: transparent;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    padding: 11px 0;
+    border-left: 2.5px solid transparent;
+    transition: background 0.15s, border-color 0.15s, opacity 0.15s;
+    font-family: inherit;
+    text-decoration: none;
+  }
+
+  .cm-nav-item.active {
+    background: rgba(197, 160, 89, 0.1);
+    border-left-color: var(--leagle-accent);
+  }
+
+  .cm-nav-item.active svg {
+    filter: drop-shadow(0 0 6px rgba(197, 160, 89, 0.65));
+  }
+
+  .cm-nav-item:not(.active) {
+    opacity: 0.48;
+  }
+
+  .cm-nav-item:not(.active):hover {
+    opacity: 0.82;
+    background: rgba(255, 255, 255, 0.03);
+  }
 }
 
-.glass {
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+@layer utilities {
+  /* ✅ Override Tailwind white colors with accent */
+  .text-leagle-accent,
+  .text-accent {
+    color: var(--leagle-accent);
+  }
+
+  .bg-leagle-accent {
+    background-color: var(--leagle-accent);
+  }
+
+  .border-leagle-accent {
+    border-color: var(--leagle-accent);
+  }
+
+  .shadow-leagle-accent {
+    box-shadow: 0 0 20px rgba(197, 160, 89, 0.3);
+  }
+
+  /* Fix text-gradient to use proper text color */
+  .text-gradient {
+    background: linear-gradient(to right, var(--leagle-accent), #ffffff);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: var(--leagle-accent);
+  }
+
+  /* Ensure span with text-leagle-accent uses the right color */
+  span.text-leagle-accent {
+    color: var(--leagle-accent) !important;
+  }
+
+  /* Fix any .bg-mesh references */
+  .bg-mesh {
+    background: var(--leagle-bg);
+  }
 }
 
-.dark .glass {
-  background: rgba(0, 0, 0, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
 }
 
-/* Markdown Styling */
-.markdown-content h3 {
-  font-size: 1.25rem;
-  font-weight: 700;
-  margin-top: 1.5rem;
-  margin-bottom: 0.5rem;
-  color: #3b82f6;
+::-webkit-scrollbar-track {
+  background: var(--leagle-bg);
 }
 
-.markdown-content p {
-  margin-bottom: 1rem;
-  line-height: 1.6;
+::-webkit-scrollbar-thumb {
+  background: #374151;
+  border-radius: 9999px;
 }
 
-.markdown-content ul,
-.markdown-content ol {
-  margin-bottom: 1rem;
-  padding-left: 1.5rem;
-  list-style-type: disc;
-}
-
-.markdown-content li {
-  margin-bottom: 0.5rem;
-}
-
-.markdown-content strong {
-  color: #60a5fa;
-  font-weight: 600;
-}
-
-.markdown-content blockquote {
-  border-left: 4px solid #3b82f6;
-  background: rgba(59, 130, 246, 0.05);
-  padding: 1rem 1.5rem;
-  margin: 1.5rem 0;
-  border-radius: 0 1rem 1rem 0;
-  font-style: italic;
-  color: #1e3a8a;
+::-webkit-scrollbar-thumb:hover {
+  background: #4b5563;
 }
