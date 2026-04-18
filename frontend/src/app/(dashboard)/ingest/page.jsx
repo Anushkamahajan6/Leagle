@@ -1,6 +1,6 @@
 'use client'
 
-import Ingest from '../components/Ingest'
+import Ingest from '../../components/Ingest'
 import { Upload } from 'lucide-react'
 
 export default function IngestPage() {
