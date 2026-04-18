@@ -76,7 +76,7 @@ export default function ImpactAnalysis() {
                 <div className={`glass-card p-6 transition-all duration-500 border-leagle-accent/10 flex flex-col rounded-sm ${selectedReg ? 'bg-leagle-accent/5' : 'bg-white/2'}`}>
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-3">
-                            <Shield className="text-leagle-accent" size={20} />
+                            <img src="/logo.png" alt="Leagle Logo" className="w-5 h-5" />
                             <h3 className="font-black text-white text-sm uppercase tracking-widest">Regulation</h3>
                         </div>
                         {selectedReg && (
@@ -264,7 +264,7 @@ export default function ImpactAnalysis() {
                                     {Array.isArray(result.compliance_gaps) && result.compliance_gaps.length > 0 ? (
                                         result.compliance_gaps.map((gap, i) => (
                                             <div key={i} className="p-4 bg-white/2 border border-white/5 rounded-xl flex items-start gap-4">
-                                                <Shield size={14} className="text-red-500 mt-1 shrink-0" />
+                                                <img src="/logo.png" alt="Leagle Logo" className="w-4 h-4 mt-1 shrink-0" />
                                                 <p className="text-xs text-gray-300 leading-relaxed font-medium">{gap}</p>
                                             </div>
                                         ))

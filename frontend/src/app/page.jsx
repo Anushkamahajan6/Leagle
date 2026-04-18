@@ -12,7 +12,7 @@ export default function Home() {
                 <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
                     <div className="flex items-center gap-8">
                         <Link href="/" className="flex items-center gap-2.5 group">
-                            <Shield className="w-8 h-8 text-leagle-accent group-hover:scale-110 transition-transform" />
+                            <img src="/logo.png" alt="Leagle Logo" className="w-8 h-8 group-hover:scale-110 transition-transform" />
                             <span className="text-xl font-bold tracking-tight text-white font-serif italic">
                                 Leagle <span className="text-leagle-accent">Intelligence</span>
                             </span>
@@ -61,10 +61,6 @@ export default function Home() {
                     {/* Subtle Ambient Glow */}
                     <div className="absolute top-20 left-1/2 -translate-x-1/2 w-full h-full bg-[radial-gradient(circle_at_center,rgba(197,160,89,0.05)_0%,transparent_70%)] -z-10" />
 
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-leagle-accent/5 border border-leagle-accent/20 text-leagle-accent text-xs font-bold tracking-widest uppercase mb-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                        <Activity className="w-3 h-3" />
-                        Operational Intelligence Hub
-                    </div>
 
                     <h1 className="text-5xl md:text-7xl font-serif font-medium mb-8 leading-[1.1] animate-in fade-in slide-in-from-bottom-8 duration-700 delay-100">
                         Enterprise <span className="text-gradient">Regulatory Intelligence</span> & Compliance
@@ -147,7 +143,7 @@ export default function Home() {
             <footer className="py-20 border-t border-white/5 px-6">
                 <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
                     <div className="flex items-center gap-2">
-                        <Shield className="w-6 h-6 text-leagle-accent" />
+                        <img src="/logo.png" alt="Leagle Logo" className="w-6 h-6" />
                         <span className="text-lg font-bold tracking-tight text-white font-serif italic">Leagle</span>
                     </div>
                     <div className="flex gap-8 text-sm text-gray-500">

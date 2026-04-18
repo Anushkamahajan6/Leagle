@@ -65,7 +65,7 @@ export default function Dashboard() {
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mt-12">
                     {[
-                        { label: "Regulation Portfolio", value: stats.regs, icon: <Shield size={16} /> },
+                        { label: "Regulation Portfolio", value: stats.regs, icon: <img src="/logo.png" alt="L" className="w-4 h-4" /> },
                         { label: "Active Directives", value: stats.alerts, icon: <TrendingUp size={16} /> },
                         { label: "Critical Risk Gaps", value: stats.highRisk, icon: <AlertTriangle size={16} />, highlight: true },
                     ].map((stat, i) => (

@@ -39,9 +39,9 @@ export default function Navigation() {
     return (
         <aside className="fixed left-0 top-0 bottom-0 w-[76px] min-h-screen shrink-0 bg-[rgba(2,9,22,0.98)] border-r border-[rgba(56,189,248,0.09)] z-30 flex flex-col items-center">
             <div className="w-full py-[18px] border-b border-white/5 flex justify-center">
-                <div className="w-8 h-8 flex items-center justify-center text-leagle-accent">
-                    <Scale size={20} />
-                </div>
+                <Link href="/" className="w-8 h-8 flex items-center justify-center">
+                    <img src="/logo.png" alt="Leagle Logo" className="w-7 h-7" />
+                </Link>
             </div>
 
             <nav className="flex-1 w-full py-2.5 flex flex-col gap-px">

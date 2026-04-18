@@ -25,7 +25,7 @@ export default function SemanticSearch() {
         <div className="max-w-5xl mx-auto min-h-[85vh] space-y-12 animate-in fade-in duration-1000">
             <div className="text-center space-y-4">
                 <div className="inline-flex items-center justify-center w-20 h-20 bg-leagle-accent/10 rounded-3xl mb-4 text-leagle-accent shadow-[0_0_40px_rgba(56,189,248,0.1)] border border-leagle-accent/20">
-                    <Search size={40} />
+                    <img src="/logo.png" alt="Leagle Logo" className="w-10 h-10" />
                 </div>
                 <h2 className="text-5xl font-serif text-white tracking-tight italic">
                     Diagnostic <span className="text-leagle-accent underline decoration-leagle-accent/30">Intelligence</span>
