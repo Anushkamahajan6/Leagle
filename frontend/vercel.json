@@ -7,5 +7,9 @@
   "regions": [
     "sfo1"
   ],
-  "env": {}
+  "env": {
+    "NEXT_PUBLIC_BACKEND_URL": {
+      "default": "https://perseuskyogre-leagle.hf.space"
+    }
+  }
 }
