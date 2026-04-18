@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { LayoutDashboard, Scale, Search, Upload, BarChart3, Bell, Target, RefreshCw } from 'lucide-react'
+import { UserButton } from '@clerk/nextjs'
 
 export default function Navigation() {
     const pathname = usePathname()
@@ -63,7 +64,7 @@ export default function Navigation() {
                 })}
             </nav>
 
-            <div className="w-full py-2 border-t border-white/5 flex flex-col items-center gap-2">
+            <div className="w-full py-4 border-t border-white/5 flex flex-col items-center gap-4">
                 <button
                     onClick={handleSync}
                     disabled={syncLoading}
@@ -72,8 +73,19 @@ export default function Navigation() {
                 >
                     <RefreshCw size={14} className={syncLoading ? 'animate-spin' : ''} />
                 </button>
-                <div className="w-[7px] h-[7px] rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.7)] animate-[cm-pulse_2s_ease-in-out_infinite]" />
-                <span className="text-[8px] font-extrabold uppercase tracking-[0.08em] text-green-400/50">Active</span>
+
+                <UserButton
+                    appearance={{
+                        elements: {
+                            userButtonAvatarBox: "w-10 h-10 border border-leagle-accent/20 hover:border-leagle-accent transition-colors"
+                        }
+                    }}
+                />
+
+                <div className="flex flex-col items-center gap-1">
+                    <div className="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.7)] animate-[cm-pulse_2s_ease-in-out_infinite]" />
+                    <span className="text-[7px] font-extrabold uppercase tracking-widest text-green-400/40">Live</span>
+                </div>
             </div>
 
             {syncMessage && (

@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { ChevronRight, Shield, Activity, Search, Globe, Lock, ArrowRight } from 'lucide-react';
+import { Show, UserButton, SignInButton, SignUpButton } from '@clerk/nextjs';
 
 export default function Home() {
     return (
@@ -26,12 +27,30 @@ export default function Home() {
                     </div>
 
                     <div className="flex items-center gap-4">
-                        <Link href="/dashboard" className="text-sm font-medium text-gray-400 hover:text-white px-4 transition-colors">
-                            Sign In
-                        </Link>
-                        <Link href="/dashboard" className="btn-premium px-6 py-2.5 text-sm">
-                            Get Started
-                        </Link>
+                        <Show when="signed-out">
+                            <SignInButton mode="modal">
+                                <button className="text-sm font-medium text-gray-400 hover:text-white px-4 transition-colors cursor-pointer">
+                                    Sign In
+                                </button>
+                            </SignInButton>
+                            <SignUpButton mode="modal">
+                                <button className="btn-premium px-6 py-2.5 text-sm cursor-pointer">
+                                    Get Started
+                                </button>
+                            </SignUpButton>
+                        </Show>
+                        <Show when="signed-in">
+                            <Link href="/dashboard" className="text-sm font-medium text-gray-400 hover:text-white px-4 transition-colors">
+                                Dashboard
+                            </Link>
+                            <UserButton
+                                appearance={{
+                                    elements: {
+                                        userButtonAvatarBox: "w-9 h-9 border border-leagle-accent/20"
+                                    }
+                                }}
+                            />
+                        </Show>
                     </div>
                 </div>
             </nav>
@@ -56,10 +75,20 @@ export default function Home() {
                     </p>
 
                     <div className="flex flex-col sm:flex-row gap-4 animate-in fade-in slide-in-from-bottom-16 duration-700 delay-300">
-                        <Link href="/dashboard" className="btn-premium px-8 py-4 text-base group">
-                            Enter Control Center
-                            <ArrowRight className="ml-2 w-4 h-4 transition-transform group-hover:translate-x-1" />
-                        </Link>
+                        <Show when="signed-in">
+                            <Link href="/dashboard" className="btn-premium px-8 py-4 text-base group">
+                                Go to Control Center
+                                <ArrowRight className="ml-2 w-4 h-4 transition-transform group-hover:translate-x-1" />
+                            </Link>
+                        </Show>
+                        <Show when="signed-out">
+                            <SignUpButton mode="modal">
+                                <button className="btn-premium px-8 py-4 text-base group cursor-pointer">
+                                    Start Scanning Now
+                                    <ArrowRight className="ml-2 w-4 h-4 transition-transform group-hover:translate-x-1" />
+                                </button>
+                            </SignUpButton>
+                        </Show>
                         <Link href="#" className="px-8 py-4 text-base font-semibold border border-white/10 hover:bg-white/5 transition-all rounded-sm">
                             Request a Demo
                         </Link>
