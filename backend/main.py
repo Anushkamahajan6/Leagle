@@ -11,9 +11,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from core.config import settings
 from core.database import create_tables
 from services.qdrant_service import ensure_collection_exists
-from routers import whatsapp
-# Import all routers
-from routers import regulations, policies, impact, alerts, rag, upload, analytics
+from routers import regulations, policies, impact, alerts, rag, upload, analytics, whatsapp
+from routers.public_api import router as public_api_router
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -62,6 +61,7 @@ app.include_router(rag.router, prefix="/api/rag", tags=["rag"])
 app.include_router(upload.router, prefix="/api/ingest", tags=["ingest"])
 app.include_router(analytics.router, prefix="/api/analytics", tags=["analytics"])
 app.include_router(whatsapp.router, prefix="/api/whatsapp", tags=["whatsapp"])
+app.include_router(public_api_router, prefix="/api/v1/neural", tags=["public-api"])
 
 @app.get("/health")
 async def health_check():
