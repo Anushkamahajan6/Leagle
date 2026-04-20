@@ -1,6 +1,6 @@
 # AI Compliance Management System
 
-**Built by Team CodeWizards**
+**Built by Team Hustlers**
 
 A regulatory intelligence platform that uses vector search and LLM-powered analysis to help organizations stay compliant — automatically.
 
@@ -112,8 +112,8 @@ A visual risk matrix that maps **departments × compliance categories**, color-c
 ### 1. Clone and configure
 
 ```bash
-git clone https://github.com/Anushkamahajan6/CodeWizards.git
-cd CodeWizards
+git clone https://github.com/Anushkamahajan6/Hustlers.git
+cd Hustlers
 ```
 
 Create a `.env` file in the project root:
@@ -181,7 +181,7 @@ Open **http://localhost:3001** in your browser.
 ## Project Structure
 
 ```
-CodeWizards/
+Hustlers/
 ├── backend/
 │   ├── core/              # Config, database connection
 │   ├── models/            # SQLAlchemy models (Regulation, Policy, Impact, Alert)
@@ -257,7 +257,7 @@ Plus three sample company policies (Data Retention, Access Control, Incident Res
 
 ## Team
 
-Built by **Team CodeWizards** — a group of three engineers who believe compliance shouldn't require a law degree.
+Built by **Team Hustlers** — a group of three engineers who believe compliance shouldn't require a law degree.
 
 ---
 
